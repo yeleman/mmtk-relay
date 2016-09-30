@@ -1,0 +1,42 @@
+{
+  "project_info": {
+    "project_number": "67312999637",
+    "firebase_url": "https://mmtk-relay.firebaseio.com",
+    "project_id": "mmtk-relay",
+    "storage_bucket": "mmtk-relay.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:67312999637:android:54daf366fae94b61",
+        "android_client_info": {
+          "package_name": "com.yeleman.mmtkrelay"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "67312999637-v0f6l7u81dvqa8p0rq0q9uoj54tcl3ec.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCev9_PgOqM656SwUNAUMRsvlSTIz_dr0s"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 1,
+          "other_platform_oauth_client": []
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

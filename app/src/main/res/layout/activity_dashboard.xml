@@ -1,0 +1,215 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
+    tools:context="com.yeleman.mmtkrelay.MainActivity">
+
+    <android.support.design.widget.AppBarLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:theme="@style/AppTheme.AppBarOverlay">
+
+        <android.support.v7.widget.Toolbar
+            android:id="@+id/toolbar"
+            android:layout_width="match_parent"
+            android:background="@android:color/background_dark"
+            app:popupTheme="@style/AppTheme.PopupOverlay"
+            android:layout_height="@dimen/toolbar_height"
+            android:clickable="true" />
+
+    </android.support.design.widget.AppBarLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/header_height"
+        android:background="@android:color/black"
+        android:layout_marginTop="@dimen/toolbar_height">
+
+        <RelativeLayout
+            android:layout_width="193dp"
+            android:layout_height="@dimen/header_height"
+            android:background="@android:color/black">
+
+            <TextView
+                android:id="@+id/tvBalance"
+                android:layout_width="193dp"
+                android:layout_height="60dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="35sp"
+                android:textStyle="normal|bold"
+                android:textAlignment="center"
+                android:layout_centerVertical="true"
+ />
+
+            <TextView
+                android:id="@+id/tvBalanceUpdatedOn"
+                android:layout_width="193dp"
+                android:layout_height="20dp"
+                android:layout_marginTop="60dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="14sp"
+                android:textAlignment="center"
+                />
+        </RelativeLayout>
+
+        <RelativeLayout
+            android:layout_width="193dp"
+            android:layout_height="@dimen/header_height"
+            android:background="@android:color/black">
+
+            <TextView
+                android:id="@+id/tvMsisdn"
+                android:layout_width="193dp"
+                android:layout_height="30dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="25sp"
+                android:textStyle="normal|bold"
+                android:textAlignment="center" />
+
+            <TextView
+                android:id="@+id/tvFirstName"
+                android:layout_width="193dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="30dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                />
+
+            <TextView
+                android:id="@+id/tvLastName"
+                android:layout_width="193dp"
+                android:layout_height="25dp"
+                android:layout_marginTop="55dp"
+                android:text="-"
+                android:textColor="@android:color/white"
+                android:textSize="18sp"
+                />
+
+        </RelativeLayout>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/servers_status_height"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/servers_status_marginTop">
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/servers_status_height"
+            android:text="CONNEXIONS: "/>
+        <TextView
+            android:id="@+id/tvNetworkStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/servers_status_height"
+            android:text="ORANGE"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/servers_status_height"
+            android:text=" – "/>
+        <TextView
+            android:id="@+id/tvServerStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="@dimen/servers_status_height"
+            android:text="SERVER"/>
+        </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/page_switcher_height"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/page_switcher_marginTop"
+        style="?android:attr/buttonBarStyle">
+        <Button
+            style="?android:attr/buttonBarButtonStyle"
+            android:onClick="displayDashboard"
+            android:clickable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Dashboard" />
+        <Button
+            style="?android:attr/buttonBarButtonStyle"
+            android:onClick="displayFailedItems"
+            android:clickable="true"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Failed Items"/>
+    </LinearLayout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/content_dashboard"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="@dimen/content_marginTop"
+        android:visibility="gone"
+        tools:context="com.yeleman.mmtkrelay.MainActivity"
+        tools:showIn="@layout/activity_dashboard">
+
+        <ListView
+            android:id="@+id/lvOperations"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+        </ListView>
+
+
+    </RelativeLayout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/content_failed_items"
+        android:layout_width="match_parent"
+        android:layout_height="645dp"
+        android:layout_marginTop="@dimen/content_marginTop"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context="com.yeleman.mmtkrelay.MainActivity"
+        tools:showIn="@layout/activity_dashboard">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="Failed Items"/>
+
+    </RelativeLayout>
+
+    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        xmlns:app="http://schemas.android.com/apk/res-auto"
+        xmlns:tools="http://schemas.android.com/tools"
+        android:id="@+id/content_about"
+        android:layout_width="match_parent"
+        android:layout_height="645dp"
+        android:layout_marginTop="@dimen/content_marginTop"
+        android:paddingBottom="@dimen/activity_vertical_margin"
+        android:paddingLeft="@dimen/activity_horizontal_margin"
+        android:paddingRight="@dimen/activity_horizontal_margin"
+        android:paddingTop="@dimen/activity_vertical_margin"
+        android:visibility="gone"
+        app:layout_behavior="@string/appbar_scrolling_view_behavior"
+        tools:context="com.yeleman.mmtkrelay.MainActivity"
+        tools:showIn="@layout/activity_dashboard">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="About"/>
+
+    </RelativeLayout>
+
+</android.support.design.widget.CoordinatorLayout>

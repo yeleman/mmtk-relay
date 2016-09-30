@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+
+
+    <PreferenceCategory android:title="Orange">
+        <EditTextPreference
+            android:defaultValue=""
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Orange Money PIN code"
+            android:key="orange_pin"
+            android:inputType="number" />
+
+        <SwitchPreference
+            android:defaultValue="false"
+            android:title="Enable Balance Polling"
+            android:key="balance_polling" />
+
+        <ListPreference
+            android:defaultValue="1"
+            android:title="Balance Polling Interval"
+            android:entries="@array/interval_labels"
+            android:entryValues="@array/interval_values"
+            android:key="balance_polling_interval" />
+
+    </PreferenceCategory>
+
+
+    <PreferenceCategory android:title="Server">
+        <EditTextPreference
+        android:defaultValue="https://live.mmtk.ml"
+        android:selectAllOnFocus="true"
+        android:singleLine="true"
+        android:title="Server URL"
+        android:key="server_url"
+        android:inputType="textUri" />
+
+        <SwitchPreference
+        android:defaultValue="false"
+        android:title="Enable Server Polling"
+        android:key="server_polling" />
+
+        <ListPreference
+        android:defaultValue="1"
+        android:title="Server Polling Interval"
+        android:entries="@array/interval_labels"
+        android:entryValues="@array/interval_values"
+        android:key="server_polling_interval" />
+
+        <EditTextPreference
+            android:enabled="false"
+            android:selectable="false"
+            android:persistent="false"
+            android:shouldDisableView="false"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="Firebase Server ID"
+            android:key="server_id"
+            android:inputType="number" />
+    </PreferenceCategory>
+
+
+
+</PreferenceScreen>

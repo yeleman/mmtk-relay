@@ -42,7 +42,7 @@ public class OMUser {
     }
 
     public String getFormattedUpdatedOn() {
-        return Constants.DATE_FORMAT.format(this.getUpdatedOn());
+        return TextUtils.shortDateFormat(this.getUpdatedOn());
     }
     public Date getUpdatedOn() {
         return this.updatedOn;

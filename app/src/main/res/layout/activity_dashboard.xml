@@ -38,7 +38,7 @@
                 android:id="@+id/balance_textview"
                 android:layout_width="193dp"
                 android:layout_height="60dp"
-                android:text="1 785 000F"
+                android:text="-"
                 android:textColor="@android:color/white"
                 android:textSize="35sp"
                 android:textStyle="normal|bold"
@@ -51,7 +51,7 @@
                 android:layout_width="193dp"
                 android:layout_height="20dp"
                 android:layout_marginTop="60dp"
-                android:text="20/09 à 12h37"
+                android:text="-"
                 android:textColor="@android:color/white"
                 android:textSize="14sp"
                 android:textAlignment="center"
@@ -67,7 +67,7 @@
                 android:id="@+id/msisdn_textview"
                 android:layout_width="193dp"
                 android:layout_height="30dp"
-                android:text="73 12 08 96"
+                android:text="-"
                 android:textColor="@android:color/white"
                 android:textSize="25sp"
                 android:textStyle="normal|bold"
@@ -78,7 +78,7 @@
                 android:layout_width="193dp"
                 android:layout_height="25dp"
                 android:layout_marginTop="30dp"
-                android:text="Ibrahima"
+                android:text="-"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 />
@@ -88,7 +88,7 @@
                 android:layout_width="193dp"
                 android:layout_height="25dp"
                 android:layout_marginTop="55dp"
-                android:text="Fadiga"
+                android:text="-"
                 android:textColor="@android:color/white"
                 android:textSize="18sp"
                 />
@@ -147,21 +147,19 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/content_dashboard"
         android:layout_width="match_parent"
-        android:layout_height="645dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="@dimen/content_marginTop"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
         android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context="com.yeleman.mmtkrelay.MainActivity"
         tools:showIn="@layout/activity_dashboard">
 
-        <TextView
+        <ListView
+            android:id="@+id/lvOperations"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Dash"/>
+            android:layout_height="match_parent">
+
+        </ListView>
+
 
     </RelativeLayout>
 

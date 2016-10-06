@@ -59,6 +59,17 @@
             android:inputType="number" />
     </PreferenceCategory>
 
+    <PreferenceCategory android:title="Features">
+        <SwitchPreference
+            android:defaultValue="false"
+            android:title="Enable SMS Forwarding"
+            android:key="sms_forwarding" />
+        <SwitchPreference
+            android:defaultValue="false"
+            android:title="Enable Call Forwarding"
+            android:key="call_forwarding" />
+        </PreferenceCategory>
+
 
 
 </PreferenceScreen>

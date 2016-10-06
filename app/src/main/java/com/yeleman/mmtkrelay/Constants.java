@@ -19,6 +19,7 @@ public class Constants {
 
     public static final String SETTINGS_CHANGED_FILTER = "com.yeleman.mmtkrelay.SETTINGS_CHANGED";
     public static final String FCM_TOKEN_RECEIVED_FILTER = "com.yeleman.mmtkrelay.FCM_TOKEN_RECEIVED";
+    public static final String FCM_MESSAGE_FILTER = "com.yeleman.mmtkrelay.FCM_MESSAGE";
 
     // sensitive settings keys
     public static final String SETTINGS_SERVER_URL = "server_url";
@@ -27,11 +28,22 @@ public class Constants {
     public static final String SETTINGS_BALANCE_POLLING_INTERVAL = "balance_polling_interval";
     public static final String SETTINGS_SERVER_POLLING_INTERVAL = "server_polling_interval";
 
+    public static final String DASHBOARD_ITEMS_LIMIT = "50";
+    public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 20;
+
+
     public static int getConnectionColor(Boolean connected) {
         if (connected == null) {
             return Constants.PENDING_COLOR;
         }
         return connected ? Constants.CONNECTED_COLOR : Constants.NOT_CONNECTED_COLOR;
+    }
+
+    public static int getStatusColor(Boolean success) {
+        if (success == null) {
+            return Constants.PENDING_COLOR;
+        }
+        return success ? Constants.CONNECTED_COLOR : Constants.NOT_CONNECTED_COLOR;
     }
 
 }

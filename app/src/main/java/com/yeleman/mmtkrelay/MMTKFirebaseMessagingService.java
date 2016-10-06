@@ -6,12 +6,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.media.RingtoneManager;
 import android.net.Uri;
+import android.os.Bundle;
+import android.os.Parcel;
 import android.support.v4.app.NotificationCompat;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+
+import org.json.JSONObject;
+
+import java.util.Map;
 
 
 public class MMTKFirebaseMessagingService extends FirebaseMessagingService {
@@ -34,7 +41,6 @@ public class MMTKFirebaseMessagingService extends FirebaseMessagingService {
         // messages. For more see: https://firebase.google.com/docs/cloud-messaging/concept-options
         // [END_EXCLUDE]
 
-        // TODO(developer): Handle FCM messages here.
         // Not getting messages here? See why this may be: https://goo.gl/39bRNJ
         Log.d(Constants.TAG, "From: " + remoteMessage.getFrom());
 
@@ -47,6 +53,12 @@ public class MMTKFirebaseMessagingService extends FirebaseMessagingService {
         if (remoteMessage.getNotification() != null) {
             Log.d(Constants.TAG, "Message Notification Body: " + remoteMessage.getNotification().getBody());
         }
+
+        Intent intent = new Intent(Constants.FCM_MESSAGE_FILTER);
+        JSONObject jsdata = new JSONObject(remoteMessage.getData());
+        intent.putExtra("from", remoteMessage.getFrom());
+        intent.putExtra("data", jsdata.toString());
+        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
 
         // Also if you intend on generating your own notifications as a result of a received FCM
         // message, here is where that should be initiated. See sendNotification method below.

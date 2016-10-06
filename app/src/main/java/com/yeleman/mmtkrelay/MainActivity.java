@@ -5,27 +5,33 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
-import android.support.annotation.ColorInt;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.ArrayList;
 import java.util.Hashtable;
+import java.util.Map;
 
 
-public class MainActivity extends MMTKBaseActivity {
+public class MainActivity extends AppCompatActivity {
 
+    public Session session;
     private MMTKServerClient client;
     private static final String DASHBOARD = "dashboard";
     private static final String FAILED_ITEMS = "failed_items";
@@ -50,6 +56,8 @@ public class MainActivity extends MMTKBaseActivity {
     // servers
     private TextView omapi_status_textview;
     private TextView server_status_textview;
+
+    private SIMOrConnectivityChangedReceiver connectity_receiver;
 
     private BroadcastReceiver FCMTokenReceiver = new BroadcastReceiver() {
         @Override
@@ -81,10 +89,30 @@ public class MainActivity extends MMTKBaseActivity {
         }
     };
 
+    private BroadcastReceiver FCMMessageReceived = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(Constants.TAG, "FCMMessageReceived onReceived");
+            String from = intent.getStringExtra("from");
+            if (!from.equals(session.getServerId())) {
+                Log.e(Constants.TAG, "Received message from different SERVER_ID: --" + from + "-- instead of: --" + session.getServerId()+ "--");
+            }
+            JSONObject jsdata = null;
+            try {
+                jsdata = new JSONObject(intent.getStringExtra("data"));
+            } catch (JSONException ex) {}
+            if (jsdata != null) {
+                Log.d(Constants.TAG, "Main activity received payload: " + jsdata.toString());
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        session = new Session(this);
 
         // prevent device from going to sleep
         Utils.AcquireWakeLock(this);
@@ -102,7 +130,7 @@ public class MainActivity extends MMTKBaseActivity {
         updateConnexionsStatus();
 
         // display dashboard
-        displayDashboard();
+        switchToDashboard();
     }
 
     protected void setupUI() {
@@ -117,6 +145,13 @@ public class MainActivity extends MMTKBaseActivity {
         omapi_status_textview = (TextView) findViewById(R.id.omapi_status_textview);
         server_status_textview = (TextView) findViewById(R.id.server_status_textview);
 
+        // List View
+        ArrayList<Operation> operationsArrayList = (ArrayList<Operation>) Operation.getLatests();
+        // Create the adapter to convert the array to views
+        OperationAdapter adapter = new OperationAdapter(this, operationsArrayList);
+        // Attach the adapter to a ListView
+        ListView listView = (ListView) findViewById(R.id.lvOperations);
+        listView.setAdapter(adapter);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -138,14 +173,24 @@ public class MainActivity extends MMTKBaseActivity {
                 FCMTokenReceiver, new IntentFilter(Constants.FCM_TOKEN_RECEIVED_FILTER));
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
+                FCMMessageReceived, new IntentFilter(Constants.FCM_MESSAGE_FILTER));
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
                 SettingsUpdatedReceiver, new IntentFilter(Constants.SETTINGS_CHANGED_FILTER));
 
         // SIMOrConnectivityChangedReceiver
-        SIMOrConnectivityChangedReceiver conn_receiver = new SIMOrConnectivityChangedReceiver(this);
+        connectity_receiver = new SIMOrConnectivityChangedReceiver(this);
         IntentFilter filter_sim = new IntentFilter("android.intent.action.SIM_STATE_CHANGED");
         IntentFilter filter_conn = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        registerReceiver(conn_receiver, filter_sim);
-        registerReceiver(conn_receiver, filter_conn);
+        registerReceiver(connectity_receiver, filter_sim);
+        registerReceiver(connectity_receiver, filter_conn);
+    }
+
+    private void tearDownReceivers() {
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMTokenReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMMessageReceived);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(SettingsUpdatedReceiver);
+        unregisterReceiver(connectity_receiver);
     }
 
     @Override
@@ -157,7 +202,7 @@ public class MainActivity extends MMTKBaseActivity {
     @Override
     public void onBackPressed() {
         if (this.CURRENT_PAGE == this.ABOUT) {
-            this.displayDashboard();
+            this.switchToDashboard();
         } else {
             moveTaskToBack(true);
         }
@@ -171,12 +216,12 @@ public class MainActivity extends MMTKBaseActivity {
                 startActivityForResult(new Intent(this, SettingsActivity.class), 0);
                 return true;
             case R.id.failed_items:
-                this.displayFailedItems();
+                this.switchToFailedItems();
                 return true;
             case R.id.check_connexions:
                 return true;
             case R.id.about:
-                this.displayAbout();
+                this.switchToAbout();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -190,9 +235,8 @@ public class MainActivity extends MMTKBaseActivity {
         // release lock on CPU
         Utils.ReleaseWakeLock(this);
 
-        // remove all receivers
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMTokenReceiver);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(SettingsUpdatedReceiver);
+        // release all receivers
+        tearDownReceivers();
 
         super.onDestroy();
     }
@@ -204,11 +248,11 @@ public class MainActivity extends MMTKBaseActivity {
     }
 
     // pages switchers
-    protected void displayDashboard(View view) { displayDashboard(); }
-    protected void displayDashboard() { changeCurrentPage(DASHBOARD); }
-    protected void displayAbout() { changeCurrentPage(ABOUT); }
-    protected void displayFailedItems(View view) { displayFailedItems(); }
-    protected void displayFailedItems() { changeCurrentPage(FAILED_ITEMS); }
+    public void displayDashboard(View view) { switchToDashboard(); }
+    protected void switchToDashboard() { changeCurrentPage(DASHBOARD); }
+    protected void switchToAbout() { changeCurrentPage(ABOUT); }
+    public void displayFailedItems(View view) { switchToFailedItems(); }
+    protected void switchToFailedItems() { changeCurrentPage(FAILED_ITEMS); }
     protected void hidePage(String page) {
         Log.d(Constants.TAG, "hidePage: " + page);
         int page_id = pages.get(page);

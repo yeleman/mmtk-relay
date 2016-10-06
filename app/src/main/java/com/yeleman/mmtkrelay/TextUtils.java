@@ -1,6 +1,7 @@
 package com.yeleman.mmtkrelay;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 
 public class TextUtils {
 
@@ -23,6 +24,31 @@ public class TextUtils {
             return String.format("%sF", formatted);
         }
         return formatted;
+    }
+
+    public static String msisdnFormat(String msisdn) {
+        try {
+            if (msisdn.matches("^[a-zA-Z]+$")) {
+                return msisdn;
+            }
+            String formatted = msisdn.replaceFirst("223", "");
+            return String.format("%s %s %s %s",
+                    formatted.subSequence(0, 2), formatted.subSequence(2, 4),
+                    formatted.subSequence(4, 6), formatted.subSequence(6, 8));
+        } catch (Exception ex) {}
+        return msisdn;
+    }
+
+    public static String transactionFormat(String transactionId) {
+        try {
+            String[] parts = transactionId.split("\\.", 4);
+            return parts[2];
+        } catch (Exception ex) {}
+        return "";
+    }
+
+    public static String shortDateFormat(Date date) {
+        return Constants.DATE_FORMAT.format(date);
     }
 
     public static String fromBytes(byte[] bytes) {

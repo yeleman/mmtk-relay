@@ -3,7 +3,6 @@ package com.yeleman.mmtkrelay;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.preference.PreferenceManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -23,6 +22,8 @@ public class MMTKFirebaseInstanceIDService extends FirebaseInstanceIdService {
         // Get updated InstanceID token.
         String refreshedToken = FirebaseInstanceId.getInstance().getToken();
         Log.d(Constants.TAG, "Refreshed token: " + refreshedToken);
+
+        Context context = getApplicationContext();
 
         // broadcast new token locally
         Intent intent = new Intent(Constants.FCM_TOKEN_RECEIVED_FILTER);

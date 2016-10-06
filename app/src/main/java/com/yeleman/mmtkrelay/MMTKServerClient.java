@@ -55,6 +55,7 @@ class MMTKServerClient {
                 try {
                     JSONObject json = new JSONObject(TextUtils.fromBytes(response));
                     activity.updateSharedPreferences(Constants.SETTINGS_SERVER_ID, json.getString("serverID"));
+                    activity.session.setServerId(json.getString("serverID"));
                 } catch (JSONException ex) { }
             }
             @Override

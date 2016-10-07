@@ -1,8 +1,11 @@
 package com.yeleman.mmtkrelay;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import android.content.Context;
+import android.support.annotation.NonNull;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +14,7 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
-public class OperationAdapter extends ArrayAdapter<Operation> {
+class OperationAdapter extends ArrayAdapter<Operation> {
 
     private static class ViewHolder {
         TextView tvAction;
@@ -21,12 +24,13 @@ public class OperationAdapter extends ArrayAdapter<Operation> {
         TextView tvTransactionId;
     }
 
-    public OperationAdapter(Context context, ArrayList<Operation> users) {
+    OperationAdapter(Context context, ArrayList<Operation> users) {
         super(context, R.layout.item_operation, users);
     }
 
     @Override
-    public View getView(int position, View convertView, ViewGroup parent) {
+    @NonNull
+    public View getView(int position, View convertView, @NonNull ViewGroup parent) {
         // Get the data item for this position
         Operation operation = getItem(position);
 
@@ -61,5 +65,19 @@ public class OperationAdapter extends ArrayAdapter<Operation> {
         viewHolder.tvTransactionId.setText(operation.getStrippedTransactionId());
 
         return convertView;
+    }
+
+    void update() {
+        Log.e(Constants.TAG, "update adapter");
+        Operation latest = getItem(0);
+        Log.d(Constants.TAG, "latest: " + latest);
+        Long latestId = latest.getId();
+        if (latestId == null) {
+            return;
+        }
+        List<Operation> operations = Operation.getNewestSince(latestId);
+        for (Operation operation: operations) {
+            insert(operation, 0);
+        }
     }
 }

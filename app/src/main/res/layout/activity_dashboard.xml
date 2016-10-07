@@ -35,7 +35,7 @@
             android:background="@android:color/black">
 
             <TextView
-                android:id="@+id/balance_textview"
+                android:id="@+id/tvBalance"
                 android:layout_width="193dp"
                 android:layout_height="60dp"
                 android:text="-"
@@ -47,7 +47,7 @@
  />
 
             <TextView
-                android:id="@+id/balance_updated_on_textview"
+                android:id="@+id/tvBalanceUpdatedOn"
                 android:layout_width="193dp"
                 android:layout_height="20dp"
                 android:layout_marginTop="60dp"
@@ -64,7 +64,7 @@
             android:background="@android:color/black">
 
             <TextView
-                android:id="@+id/msisdn_textview"
+                android:id="@+id/tvMsisdn"
                 android:layout_width="193dp"
                 android:layout_height="30dp"
                 android:text="-"
@@ -74,7 +74,7 @@
                 android:textAlignment="center" />
 
             <TextView
-                android:id="@+id/first_name_textview"
+                android:id="@+id/tvFirstName"
                 android:layout_width="193dp"
                 android:layout_height="25dp"
                 android:layout_marginTop="30dp"
@@ -84,7 +84,7 @@
                 />
 
             <TextView
-                android:id="@+id/last_name_textview"
+                android:id="@+id/tvLastName"
                 android:layout_width="193dp"
                 android:layout_height="25dp"
                 android:layout_marginTop="55dp"
@@ -108,7 +108,7 @@
             android:layout_height="@dimen/servers_status_height"
             android:text="CONNEXIONS: "/>
         <TextView
-            android:id="@+id/omapi_status_textview"
+            android:id="@+id/tvNetworkStatus"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/servers_status_height"
             android:text="ORANGE"/>
@@ -117,7 +117,7 @@
             android:layout_height="@dimen/servers_status_height"
             android:text=" – "/>
         <TextView
-            android:id="@+id/server_status_textview"
+            android:id="@+id/tvServerStatus"
             android:layout_width="wrap_content"
             android:layout_height="@dimen/servers_status_height"
             android:text="SERVER"/>

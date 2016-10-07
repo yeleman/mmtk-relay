@@ -23,7 +23,7 @@ class Session {
 
     // OMAPI
     private String orange_sender = "22373120896"; //"OrangeMoney";
-    private OMUser user = new OMUser();
+    private OMUser user = null;
     private String msisdn = null;
     private String server_id = null;
 
@@ -34,17 +34,24 @@ class Session {
 
     Session(Context context) {
         this.context = context;
-        this.loadFromPreferences(this.context);
+        this.loadFromPreferences(this.context, true);
     }
 
-    public void reloadPreferences() { this.loadFromPreferences(this.context); }
+    public void reloadPreferences(boolean includeUser) { this.loadFromPreferences(this.context, includeUser); }
+    public void reloadPreferences() { this.loadFromPreferences(this.context, false); }
 
     public void loadFromPreferences(Context context) {
+        loadFromPreferences(context, false);
+    }
+    public void loadFromPreferences(Context context, boolean includeUser) {
         SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
         setServerUrl(sharedPref.getString("server_url", null));
         setServerPolling(sharedPref.getBoolean("server_polling", false));
         setServerPollingInterval(sharedPref.getString("server_polling_interval", "600"));
+
+        setMsisdn(sharedPref.getString("msisdn", null));
         setServerId(sharedPref.getString("server_id", null));
+
         setSMSForwarding(sharedPref.getBoolean("sms_forwarding", false));
         setCallForwarding(sharedPref.getBoolean("call_forwarding", false));
 
@@ -53,6 +60,60 @@ class Session {
         setBalancePollingInterval(sharedPref.getString("balance_polling_interval", "600"));
 
         setFCMToken(sharedPref.getString("fcm_token", null));
+        setFCMTokenTransmitted(sharedPref.getBoolean("fcm_token_transmitted", false));
+
+        setServerConnected(sharedPref.getBoolean("server_connected", false));
+        setOrangeConnected(sharedPref.getBoolean("orange_connected", false));
+
+        if (includeUser) {
+            setUser(OMUser.fromPreferences(context));
+        }
+    }
+
+    void saveToPreferences() { saveToPreferences(false); }
+    void saveToPreferences(boolean includeUser) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefEditor = sharedPref.edit();
+        prefEditor.putString("server_url", getServerUrl());
+
+        prefEditor.putBoolean("server_polling", getServerPolling());
+        prefEditor.putString("server_polling_interval", String.valueOf(getServerPollingInterval()));
+
+        prefEditor.putString("msisdn", getMsisdn());
+        prefEditor.putString("server_id", getServerId());
+
+        prefEditor.putBoolean("sms_forwarding", getSMSForwarding());
+        prefEditor.putBoolean("call_forwarding", getCallForwarding());
+
+        prefEditor.putString("orange_pin", getOragePin());
+
+        prefEditor.putBoolean("balance_polling", getServerPolling());
+        prefEditor.putString("balance_polling_interval", String.valueOf(getServerPollingInterval()));
+
+        prefEditor.putString("fcm_token", getFCMToken());
+
+        if (getFCMTokenTransmitted() == null) {
+            prefEditor.putBoolean("fcm_token_transmitted", false);
+        } else {
+            prefEditor.putBoolean("fcm_token_transmitted", getFCMTokenTransmitted());
+        }
+
+        if (getServerConnected() == null) {
+            prefEditor.putBoolean("server_connected", false);
+        } else {
+            prefEditor.putBoolean("server_connected", getServerConnected());
+        }
+        if (getOrangeConnected() == null) {
+            prefEditor.putBoolean("orange_connected", false);
+        } else {
+            prefEditor.putBoolean("orange_connected", getOrangeConnected());
+        }
+
+        prefEditor.apply();
+
+        if (includeUser) {
+            getUser().saveToPreferences(context);
+        }
     }
 
     String getMsisdn() { return msisdn; }

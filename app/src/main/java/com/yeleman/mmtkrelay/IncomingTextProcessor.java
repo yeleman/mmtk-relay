@@ -3,10 +3,8 @@ package com.yeleman.mmtkrelay;
 import android.app.IntentService;
 import android.content.Intent;
 import android.content.Context;
-import android.util.FloatProperty;
 import android.util.Log;
 
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -74,6 +72,7 @@ public class IncomingTextProcessor extends IntentService {
                 final long timestamp = intent.getLongExtra(EXTRA_TIMESTAMP, 0);
                 handleIncomingCall(from, timestamp);
             }
+            Utils.triggerUIRefresh(context, "refreshDashboard");
         }
     }
 
@@ -162,12 +161,15 @@ public class IncomingTextProcessor extends IntentService {
             return;
         }
 
-        // last transaction failed
+        // last transaction failed: should already be recorded as such
         pattern = Pattern.compile(FAILED_TRANSACTION_REGEX);
         matcher = pattern.matcher(text);
         if (matcher.matches()) {
             String reason = matcher.group(1);
             Operation operation = Operation.getLatestTransaction();
+//            if (operation.getAction().equals(Operation.OUTGOING_TRANSFER) && operation.getStatus().equals(Operation.PENDING)) {
+//
+//            }
             Log.e(Constants.TAG, operation.toString());
             // Long oid = Operation.storeFailedTransaction(session.getMsisdn(), received_on, reason);
             // Log.d(Constants.TAG, "Recorded operation#" + oid.toString());
@@ -191,6 +193,10 @@ public class IncomingTextProcessor extends IntentService {
             Log.d(Constants.TAG, "Recorded operation#" + oid2.toString());
             return;
         }
+
+        // no matching pattern. must be a text message from OrangeMoney
+        Long oid = Operation.storeSMSText(session.getMsisdn(), received_on, from, text);
+        Log.d(Constants.TAG, "Recorded operation#" + oid.toString());
     }
 
     private void handleIncomingCall(String from, Long timestamp) {

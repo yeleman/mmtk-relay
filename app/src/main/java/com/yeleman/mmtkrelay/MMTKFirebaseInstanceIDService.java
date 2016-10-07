@@ -8,6 +8,7 @@ import android.util.Log;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.FirebaseInstanceIdService;
+import com.yeleman.mmtkrelay.Constants;
 
 
 public class MMTKFirebaseInstanceIDService extends FirebaseInstanceIdService {
@@ -24,10 +25,11 @@ public class MMTKFirebaseInstanceIDService extends FirebaseInstanceIdService {
         Log.d(Constants.TAG, "Refreshed token: " + refreshedToken);
 
         Context context = getApplicationContext();
+        Session session = new Session(context);
+        session.setFCMToken(refreshedToken);
+        session.setFCMTokenTransmitted(false);
+        session.saveToPreferences();
 
-        // broadcast new token locally
-        Intent intent = new Intent(Constants.FCM_TOKEN_RECEIVED_FILTER);
-        intent.putExtra("token", refreshedToken);
-        LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+        ServerAPIService.startFCMTokenUpdate(context);
     }
 }

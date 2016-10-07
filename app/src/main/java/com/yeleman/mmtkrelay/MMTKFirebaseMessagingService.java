@@ -15,6 +15,9 @@ import android.util.Log;
 
 import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
+import com.yeleman.mmtkrelay.Constants;
+import com.yeleman.mmtkrelay.MainActivity;
+import com.yeleman.mmtkrelay.R;
 
 import org.json.JSONObject;
 

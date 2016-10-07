@@ -222,6 +222,13 @@ public class Operation extends SugarRecord {
         return Select.from(Operation.class).orderBy("CREATEDON Desc").limit(Constants.DASHBOARD_ITEMS_LIMIT).list();
     }
 
+    static List<Operation> getNewestSince(Long since)
+    {
+        String[] params = new String[1];
+        params[0] = String.valueOf(since);
+        return Select.from(Operation.class).where("ID > ?", params).orderBy("CREATEDON ASC").list();
+    }
+
     static Operation getLatestTransaction()
     {
         return Select.from(Operation.class).where("action in ?", (String[]) TRANSACTIONS.toArray()).orderBy("created_on Desc").limit(Constants.DASHBOARD_ITEMS_LIMIT).first();

@@ -20,6 +20,7 @@ public class Constants {
     public static final String SETTINGS_CHANGED_FILTER = "com.yeleman.mmtkrelay.SETTINGS_CHANGED";
     public static final String FCM_TOKEN_RECEIVED_FILTER = "com.yeleman.mmtkrelay.FCM_TOKEN_RECEIVED";
     public static final String FCM_MESSAGE_FILTER = "com.yeleman.mmtkrelay.FCM_MESSAGE";
+    public static final String UI_TAMPERED_FILTER = "com.yeleman.mmtkrelay.UI_TAMPERED";
 
     // sensitive settings keys
     public static final String SETTINGS_SERVER_URL = "server_url";

@@ -1,12 +1,12 @@
 package com.yeleman.mmtkrelay;
 
+import android.content.Context;
+import android.content.SharedPreferences;
+import android.preference.PreferenceManager;
+
 import java.util.Date;
 
-/**
- * Created by reg on 9/21/16.
- */
-
-public class OMUser {
+class OMUser {
 
     public int balance;
     public boolean barredAsReceiver;
@@ -18,6 +18,41 @@ public class OMUser {
     public int status;
     public boolean suspended;
     public Date updatedOn;
+
+    public static OMUser fromPreferences(Context context) {
+        OMUser user = new OMUser();
+        user.loadFromPreferences(context);
+        return user;
+    }
+
+    public void loadFromPreferences(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        balance = sharedPref.getInt("user_balance", 0);
+        barredAsReceiver = sharedPref.getBoolean("user_barredAsReceiver", false);
+        barredAsSender = sharedPref.getBoolean("user_barredAsSender", false);
+        firstName = sharedPref.getString("user_firstName", null);
+        lastName = sharedPref.getString("user_lastName", null);
+        frBalance = sharedPref.getString("user_frBalance", null);
+        message = sharedPref.getString("user_message", null);
+        status = sharedPref.getInt("user_status", 0);
+        suspended = sharedPref.getBoolean("user_suspended", false);
+        updatedOn = new Date(sharedPref.getInt("user_updatedOn", (int) new Date().getTime()));
+    }
+
+    void saveToPreferences(Context context) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefEditor = sharedPref.edit();
+        prefEditor.putInt("user_balance", balance);
+        prefEditor.putBoolean("user_barredAsReceiver", barredAsReceiver);
+        prefEditor.putBoolean("user_barredAsReceiver", barredAsReceiver);
+        prefEditor.putString("user_firstName", firstName);
+        prefEditor.putString("user_lastName", lastName);
+        prefEditor.putString("user_message", message);
+        prefEditor.putInt("user_status", status);
+        prefEditor.putBoolean("user_suspended", suspended);
+        prefEditor.putInt("user_updatedOn", (int) updatedOn.getTime());
+        prefEditor.apply();
+    }
 
     public void setBalance(String balance) {
         this.balance = Integer.parseInt(balance);

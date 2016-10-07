@@ -3,12 +3,13 @@ package com.yeleman.mmtkrelay;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.provider.Telephony;
 import android.telephony.SmsMessage;
 import android.util.Log;
+
+import com.yeleman.mmtkrelay.Constants;
+import com.yeleman.mmtkrelay.IncomingTextProcessor;
 
 public class SMSReceiver extends BroadcastReceiver {
     public SMSReceiver() {
@@ -42,7 +43,6 @@ public class SMSReceiver extends BroadcastReceiver {
                 body += part.getMessageBody();
             }
             IncomingTextProcessor.startProcessing(context, from, timestamp, body);
-            // request UI reload?
         }
     }
 }

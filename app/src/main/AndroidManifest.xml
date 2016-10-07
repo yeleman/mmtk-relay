@@ -7,7 +7,7 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
-    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS"/>
+    <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
 
     <application
         android:name="com.orm.SugarApp"
@@ -78,8 +78,7 @@
                 <action android:name="android.provider.Telephony.SMS_RECEIVED" />
             </intent-filter>
         </receiver>
-
-        <receiver android:name=".CallReceiver" >
+        <receiver android:name=".CallReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.PHONE_STATE" />
             </intent-filter>
@@ -90,6 +89,12 @@
 
         <service
             android:name=".IncomingTextProcessor"
+            android:exported="false" />
+        <service
+            android:name=".OrangeAPIService"
+            android:exported="false" />
+        <service
+            android:name=".ServerAPIService"
             android:exported="false"></service>
     </application>
 

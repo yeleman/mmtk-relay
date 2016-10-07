@@ -26,13 +26,12 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
-import java.util.Map;
 
 
 public class MainActivity extends AppCompatActivity {
 
     public Session session;
-    private MMTKServerClient client;
+//    private MMTKServerClient client;
     private static final String DASHBOARD = "dashboard";
     private static final String FAILED_ITEMS = "failed_items";
     private static final String ABOUT = "about";
@@ -48,34 +47,39 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     // main header
-    private TextView balance_textview;
-    private TextView balance_updated_on_textview;
-    private TextView msisdn_textview;
-    private TextView first_name_textview;
-    private TextView last_name_textview;
+    private TextView tvBalance;
+    private TextView tvBalanceUpdatedOn;
+    private TextView tvMsisdn;
+    private TextView tvFirstName;
+    private TextView tvLastName;
     // servers
-    private TextView omapi_status_textview;
-    private TextView server_status_textview;
+    private TextView tvNetworkStatus;
+    private TextView tvServerStatus;
+
+    // dashboard
+    private ArrayList<Operation> operationsArrayList;
+    OperationAdapter adapter;
+    ListView lvOperations;
 
     private SIMOrConnectivityChangedReceiver connectity_receiver;
 
-    private BroadcastReceiver FCMTokenReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            String token = intent.getStringExtra("token");
-            Log.d(Constants.TAG, "FCMTokenReceiver: " + token);
-
-            // save token to shared Prefs
-            updateSharedPreferences(Constants.SETTINGS_FCM_TOKEN, token);
-
-            // update session
-            session.setFCMToken(token);
-            session.setFCMTokenTransmitted(false);
-
-            // transmit token to server
-            client.updateFCMToken();
-        }
-    };
+//    private BroadcastReceiver FCMTokenReceiver = new BroadcastReceiver() {
+//        @Override
+//        public void onReceive(Context context, Intent intent) {
+//            String token = intent.getStringExtra("token");
+//            Log.d(Constants.TAG, "FCMTokenReceiver: " + token);
+//
+//            // save token to shared Prefs
+//            updateSharedPreferences(Constants.SETTINGS_FCM_TOKEN, token);
+//
+//            // update session
+//            session.setFCMToken(token);
+//            session.setFCMTokenTransmitted(false);
+//
+//            // transmit token to server
+//            client.updateFCMToken();
+//        }
+//    };
 
     private BroadcastReceiver SettingsUpdatedReceiver = new BroadcastReceiver() {
         @Override
@@ -107,6 +111,27 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
+    private BroadcastReceiver UITamperedReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            Log.d(Constants.TAG, "UITamperedReceiver onReceived");
+            Boolean refreshMsisdn = intent.getBooleanExtra("refreshMsisdn", false);
+            Boolean refreshUser = intent.getBooleanExtra("refreshUser", false);
+            Boolean refreshBalance = intent.getBooleanExtra("refreshBalance", false);
+            Boolean refreshDashboard = intent.getBooleanExtra("refreshDashboard", false);
+            Boolean refreshFailedItems = intent.getBooleanExtra("refreshFailedItems", false);
+            Boolean refreshServerStatus = intent.getBooleanExtra("refreshServerStatus", false);
+            Boolean refreshNetworkStatus = intent.getBooleanExtra("refreshNetworkStatus", false);
+            if (refreshMsisdn || refreshUser || refreshNetworkStatus || refreshServerStatus) {
+                Log.w(Constants.TAG, "brui refreshing session ");
+                session.reloadPreferences();
+            }
+            Log.w(Constants.TAG, "br ui tamp: " + session.getServerConnected());
+            redrawUI(refreshMsisdn, refreshUser, refreshBalance, refreshDashboard, refreshFailedItems,
+                     refreshNetworkStatus, refreshServerStatus);
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -118,7 +143,7 @@ public class MainActivity extends AppCompatActivity {
         Utils.AcquireWakeLock(this);
 
         // prepare server connection
-        client = new MMTKServerClient(this);
+//        client = new MMTKServerClient(this);
 
         // build UI with all elements (pages hidden)
         setupUI();
@@ -137,46 +162,98 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_dashboard);
 
         // load references to moving elements
-        balance_textview = (TextView) findViewById(R.id.balance_textview);
-        balance_updated_on_textview = (TextView) findViewById(R.id.balance_updated_on_textview);
-        msisdn_textview = (TextView) findViewById(R.id.msisdn_textview);
-        first_name_textview = (TextView) findViewById(R.id.first_name_textview);
-        last_name_textview = (TextView) findViewById(R.id.last_name_textview);
-        omapi_status_textview = (TextView) findViewById(R.id.omapi_status_textview);
-        server_status_textview = (TextView) findViewById(R.id.server_status_textview);
+        tvBalance = (TextView) findViewById(R.id.tvBalance);
+        tvBalanceUpdatedOn = (TextView) findViewById(R.id.tvBalanceUpdatedOn);
+        tvMsisdn = (TextView) findViewById(R.id.tvMsisdn);
+        tvFirstName = (TextView) findViewById(R.id.tvFirstName);
+        tvLastName = (TextView) findViewById(R.id.tvLastName);
+        tvNetworkStatus = (TextView) findViewById(R.id.tvNetworkStatus);
+        tvServerStatus = (TextView) findViewById(R.id.tvServerStatus);
 
-        // List View
-        ArrayList<Operation> operationsArrayList = (ArrayList<Operation>) Operation.getLatests();
-        // Create the adapter to convert the array to views
-        OperationAdapter adapter = new OperationAdapter(this, operationsArrayList);
-        // Attach the adapter to a ListView
-        ListView listView = (ListView) findViewById(R.id.lvOperations);
-        listView.setAdapter(adapter);
+        // Dashboard
+        operationsArrayList = (ArrayList<Operation>) Operation.getLatests();
+        adapter = new OperationAdapter(this, operationsArrayList);
+        lvOperations = (ListView) findViewById(R.id.lvOperations);
+        lvOperations.setAdapter(adapter);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
     }
 
-    public void updateSharedPreferences(String key, String value) {
-        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
-        SharedPreferences.Editor prefEditor = sharedPref.edit();
-        prefEditor.putString(key, value);
-        prefEditor.apply();
+    protected void redrawUI(Boolean refreshMsisdn, Boolean refreshUser, Boolean refreshBalance,
+                            Boolean refreshDashboard, Boolean refreshFailedItems,
+                            Boolean refreshNetworkStatus, Boolean refreshServerStatus) {
+        Log.e(Constants.TAG, "redrawUI refreshMsisdn:"+refreshMsisdn+ " refreshUser:"+refreshUser+
+                " refreshBalance:"+refreshBalance+" refreshDashboard:"+refreshDashboard+" refreshFailedItems:"+refreshFailedItems+
+                " refreshNetworkStatus:"+refreshNetworkStatus+" refreshServerStatus:"+refreshServerStatus);
+
+        if (refreshNetworkStatus) {
+            tvNetworkStatus.setTextColor(Constants.getConnectionColor(session.getOrangeConnected()));
+        }
+
+        if (refreshServerStatus) {
+            Log.w(Constants.TAG, "tv update: " + session.getServerConnected());
+            tvServerStatus.setTextColor(Constants.getConnectionColor(session.getServerConnected()));
+            if (session.getServerConnected() != null && session.getServerConnected()) {
+                // connected to server ; ensure we sent our token
+                if (!session.getFCMTokenTransmitted()) {
+                    ServerAPIService.startFCMTokenUpdate(this);
+                }
+            }
+        }
+
+        if (refreshMsisdn) {
+            Log.d(Constants.TAG, "MSISDN: "+ session.getMsisdn() + " --- " + session.getFormattedMsisdn());
+            tvMsisdn.setText(session.getFormattedMsisdn());
+        }
+
+        if (refreshUser) {
+            if (!session.getUser().isValid()) {
+                tvFirstName.setText(Constants.BLANK);
+                tvLastName.setText(Constants.BLANK);
+            } else {
+                tvFirstName.setText(session.getUser().getFirstName());
+                tvLastName.setText(session.getUser().getLastName());
+            }
+        }
+
+        if (refreshBalance) {
+            if (!session.getUser().isValid()) {
+                tvBalance.setText("!OMoney");
+                tvBalanceUpdatedOn.setText(Constants.BLANK);
+            } else {
+                tvBalance.setText(session.getUser().getFormattedBalance());
+                tvBalanceUpdatedOn.setText(session.getUser().getFormattedUpdatedOn());
+            }
+        }
+
+        if (refreshDashboard) {
+            adapter.update();
+        }
+
+        if (refreshFailedItems) {
+
+        }
     }
+
+    public void updateSharedPreferences(String key, String value) { Utils.updateSharedPreferences(this, key, value); }
 
     public void setupFCMRegistration() { FirebaseInstanceId.getInstance().getToken(); }
 
     private void setupReceivers() {
 
         // Local receivers
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                FCMTokenReceiver, new IntentFilter(Constants.FCM_TOKEN_RECEIVED_FILTER));
+//        LocalBroadcastManager.getInstance(this).registerReceiver(
+//                FCMTokenReceiver, new IntentFilter(Constants.FCM_TOKEN_RECEIVED_FILTER));
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 FCMMessageReceived, new IntentFilter(Constants.FCM_MESSAGE_FILTER));
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 SettingsUpdatedReceiver, new IntentFilter(Constants.SETTINGS_CHANGED_FILTER));
+
+        LocalBroadcastManager.getInstance(this).registerReceiver(
+                UITamperedReceiver, new IntentFilter(Constants.UI_TAMPERED_FILTER));
 
         // SIMOrConnectivityChangedReceiver
         connectity_receiver = new SIMOrConnectivityChangedReceiver(this);
@@ -187,9 +264,10 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void tearDownReceivers() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMTokenReceiver);
+//        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMTokenReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMMessageReceived);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(SettingsUpdatedReceiver);
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(UITamperedReceiver);
         unregisterReceiver(connectity_receiver);
     }
 
@@ -288,49 +366,16 @@ public class MainActivity extends AppCompatActivity {
             setupFCMRegistration();
 
             // update session
-            OrangeMaliAPIClient.fetchUser(this);
-            OrangeMaliAPIClient.fetchMsisdn(this);
+            OrangeAPIService.startMsisdn(this);
+            OrangeAPIService.startUser(this);
 
             // checking server connexion now
-            client.checkConnexion();
+            ServerAPIService.startConnexionCheck(this);
         }
     }
 
     public void updateOrangeConnexionStatus(Boolean connected) {
         session.setOrangeConnected(connected);
-        omapi_status_textview.setTextColor(Constants.getConnectionColor(connected));
-    }
-
-    public void updateServerConnexionStatus(Boolean connected) {
-        session.setServerConnected(connected);
-        server_status_textview.setTextColor(Constants.getConnectionColor(connected));
-        if (connected != null && connected) {
-            // connected to server ; ensure we sent our token
-            if (!session.getFCMTokenTransmitted()) {
-                client.updateFCMToken();
-            }
-        }
-    }
-
-    public void updateUIWithUser(OMUser user) {
-        session.setUser(user);
-        if (user == null) {
-            balance_textview.setText("!OMoney");
-            first_name_textview.setText(Constants.BLANK);
-            last_name_textview.setText(Constants.BLANK);
-            balance_updated_on_textview.setText(Constants.BLANK);
-        } else {
-            Log.d(Constants.TAG, "updateUIWithUser: " + user.toString());
-            balance_textview.setText(user.getFormattedBalance());
-            first_name_textview.setText(user.getFirstName());
-            last_name_textview.setText(user.getLastName());
-            balance_updated_on_textview.setText(user.getFormattedUpdatedOn());
-        }
-    }
-
-    public void updateUIWithMsisdn(String msisdn) {
-        Log.d(Constants.TAG, "Phone number: "+ msisdn);
-        session.setMsisdn(msisdn);
-        msisdn_textview.setText(session.getFormattedMsisdn());
+        tvNetworkStatus.setTextColor(Constants.getConnectionColor(connected));
     }
 }

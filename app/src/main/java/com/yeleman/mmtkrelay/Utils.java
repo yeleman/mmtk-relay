@@ -2,8 +2,11 @@ package com.yeleman.mmtkrelay;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.preference.PreferenceManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
 import java.util.Iterator;
@@ -44,5 +47,21 @@ public class Utils {
             }
             Log.e(Constants.TAG, "Dumping Intent end");
         }
+    }
+
+    public static void triggerUIRefresh(Context context, String... refreshKeys) {
+        Log.e(Constants.TAG, "triggerUIRefresh");
+        Intent intent = new Intent(Constants.UI_TAMPERED_FILTER);
+        for (String refreshKey : refreshKeys) {
+            intent.putExtra(refreshKey, true);
+        }
+        LocalBroadcastManager.getInstance(context).sendBroadcast(intent);
+    }
+
+    public static void updateSharedPreferences(Context context, String key, String value) {
+        SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(context);
+        SharedPreferences.Editor prefEditor = sharedPref.edit();
+        prefEditor.putString(key, value);
+        prefEditor.apply();
     }
 }

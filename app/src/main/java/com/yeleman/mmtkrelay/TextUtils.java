@@ -1,5 +1,7 @@
 package com.yeleman.mmtkrelay;
 
+import android.util.Log;
+
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
 
@@ -48,10 +50,11 @@ public class TextUtils {
     }
 
     public static String shortDateFormat(Date date) {
+        Log.d(Constants.TAG, "shortDateFormat: "+date.toString());
         return Constants.DATE_FORMAT.format(date);
     }
 
-    public static String fromBytes(byte[] bytes) {
-        return new String(bytes, StandardCharsets.UTF_8);
-    }
+    public static String fileDateFormat(Date date) { return Constants.FILE_DATE_FORMAT.format(date); }
+
+    public static String fromBytes(byte[] bytes) { return new String(bytes, StandardCharsets.UTF_8); }
 }

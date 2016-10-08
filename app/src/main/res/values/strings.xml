@@ -3,6 +3,7 @@
     <string name="title_activity_dashboard">Dashboard</string>
     <string name="settings">Settings</string>
     <string name="failed_items">Failed Items</string>
+    <string name="export_database">Export Database</string>
     <string name="check_connexions">Check Connexions</string>
     <string name="about">About</string>
     <string name="title_activity_settings">Settings</string>
@@ -10,6 +11,9 @@
 
     <string name="quit_button">Quit</string>
     <string name="retry_button">Retry</string>
+
+    <string name="export_database_successful">Database exported successfuly</string>
+    <string name="export_database_failed">Database failed to export</string>
 
     <string-array name="interval_labels">
         <item>10s</item>

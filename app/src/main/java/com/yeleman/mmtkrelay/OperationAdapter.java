@@ -1,6 +1,7 @@
 package com.yeleman.mmtkrelay;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import android.content.Context;
@@ -69,13 +70,23 @@ class OperationAdapter extends ArrayAdapter<Operation> {
 
     void update() {
         Log.e(Constants.TAG, "update adapter");
-        Operation latest = getItem(0);
-        Log.d(Constants.TAG, "latest: " + latest);
-        Long latestId = latest.getId();
-        if (latestId == null) {
-            return;
+
+        // at very first, list is empty
+        List<Operation> operations;
+        if (getCount() == 0) {
+            operations = Operation.getLatests();
+        } else {
+            Operation latest = getItem(0);
+            Log.d(Constants.TAG, "latest: " + latest);
+            Long latestId = latest.getId();
+            if (latestId == null) {
+                return;
+            }
+            operations = Operation.getNewestSince(latestId);
         }
-        List<Operation> operations = Operation.getNewestSince(latestId);
+
+        // reverse list so it's oldest first (to insert one by one)
+        Collections.reverse(operations);
         for (Operation operation: operations) {
             insert(operation, 0);
         }

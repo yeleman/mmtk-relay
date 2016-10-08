@@ -36,7 +36,12 @@ class OMUser {
         message = sharedPref.getString("user_message", null);
         status = sharedPref.getInt("user_status", 0);
         suspended = sharedPref.getBoolean("user_suspended", false);
-        updatedOn = new Date(sharedPref.getInt("user_updatedOn", (int) new Date().getTime()));
+        String updatedOnp = sharedPref.getString("user_updatedOn", null);
+        if (updatedOnp == null) {
+            updatedOn = new Date();
+        } else {
+            updatedOn = new Date(Long.valueOf(updatedOnp));
+        }
     }
 
     void saveToPreferences(Context context) {
@@ -50,7 +55,7 @@ class OMUser {
         prefEditor.putString("user_message", message);
         prefEditor.putInt("user_status", status);
         prefEditor.putBoolean("user_suspended", suspended);
-        prefEditor.putInt("user_updatedOn", (int) updatedOn.getTime());
+        prefEditor.putString("user_updatedOn", String.valueOf(updatedOn.getTime()));
         prefEditor.apply();
     }
 

@@ -10,8 +10,10 @@ import java.util.Locale;
 public class Constants {
 
     public static final String TAG = "LOG-MMTK";
+    public static final String DATABASE_NAME = "mmtk.db";
     public static final DateFormat OAPI_HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss z", Locale.ENGLISH);
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM à kk'h'mm", Locale.FRANCE);
+    public static final DateFormat FILE_DATE_FORMAT = new SimpleDateFormat("ddMMyyyykkmm", Locale.ENGLISH);
     public static final int CONNECTED_COLOR = Color.GREEN;
     public static final int NOT_CONNECTED_COLOR = Color.RED;
     public static final int PENDING_COLOR = Color.DKGRAY;

@@ -18,6 +18,7 @@ import android.view.View;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.iid.FirebaseInstanceId;
 
@@ -293,8 +294,8 @@ public class MainActivity extends AppCompatActivity {
             case R.id.settings:
                 startActivityForResult(new Intent(this, SettingsActivity.class), 0);
                 return true;
-            case R.id.failed_items:
-                this.switchToFailedItems();
+            case R.id.export_database:
+                this.exportDatabase();
                 return true;
             case R.id.check_connexions:
                 return true;
@@ -325,6 +326,15 @@ public class MainActivity extends AppCompatActivity {
         System.exit(0);
     }
 
+    public void exportDatabase() {
+        String message;
+        if (Utils.exportDatabase(this)) {
+            message = getString(R.string.export_database_successful);
+        } else {
+            message = getString(R.string.export_database_failed);
+        }
+        Toast.makeText(this, message, Toast.LENGTH_LONG).show();
+    }
     // pages switchers
     public void displayDashboard(View view) { switchToDashboard(); }
     protected void switchToDashboard() { changeCurrentPage(DASHBOARD); }

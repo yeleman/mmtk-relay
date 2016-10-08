@@ -226,7 +226,7 @@ public class Operation extends SugarRecord {
     {
         String[] params = new String[1];
         params[0] = String.valueOf(since);
-        return Select.from(Operation.class).where("ID > ?", params).orderBy("CREATEDON ASC").list();
+        return Select.from(Operation.class).where("ID > ?", params).orderBy("CREATEDON Desc").list();
     }
 
     static Operation getLatestTransaction()

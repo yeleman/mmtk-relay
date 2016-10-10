@@ -32,7 +32,6 @@ import java.util.Hashtable;
 public class MainActivity extends AppCompatActivity {
 
     public Session session;
-//    private MMTKServerClient client;
     private static final String DASHBOARD = "dashboard";
     private static final String FAILED_ITEMS = "failed_items";
     private static final String ABOUT = "about";
@@ -63,36 +62,6 @@ public class MainActivity extends AppCompatActivity {
     ListView lvOperations;
 
     private SIMOrConnectivityChangedReceiver connectity_receiver;
-
-//    private BroadcastReceiver FCMTokenReceiver = new BroadcastReceiver() {
-//        @Override
-//        public void onReceive(Context context, Intent intent) {
-//            String token = intent.getStringExtra("token");
-//            Log.d(Constants.TAG, "FCMTokenReceiver: " + token);
-//
-//            // save token to shared Prefs
-//            updateSharedPreferences(Constants.SETTINGS_FCM_TOKEN, token);
-//
-//            // update session
-//            session.setFCMToken(token);
-//            session.setFCMTokenTransmitted(false);
-//
-//            // transmit token to server
-//            client.updateFCMToken();
-//        }
-//    };
-
-    private BroadcastReceiver SettingsUpdatedReceiver = new BroadcastReceiver() {
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(Constants.TAG, "SettingsUpdatedReceiver onReceived");
-            String key = intent.getStringExtra("key");
-            if (key != null && key.equals(Constants.SETTINGS_SERVER_URL)) {
-                session.reloadPreferences();
-                updateConnexionsStatus();
-            }
-        }
-    };
 
     private BroadcastReceiver FCMMessageReceived = new BroadcastReceiver() {
         @Override
@@ -142,9 +111,6 @@ public class MainActivity extends AppCompatActivity {
 
         // prevent device from going to sleep
         Utils.AcquireWakeLock(this);
-
-        // prepare server connection
-//        client = new MMTKServerClient(this);
 
         // build UI with all elements (pages hidden)
         setupUI();
@@ -237,21 +203,13 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void updateSharedPreferences(String key, String value) { Utils.updateSharedPreferences(this, key, value); }
-
     public void setupFCMRegistration() { FirebaseInstanceId.getInstance().getToken(); }
 
     private void setupReceivers() {
 
         // Local receivers
-//        LocalBroadcastManager.getInstance(this).registerReceiver(
-//                FCMTokenReceiver, new IntentFilter(Constants.FCM_TOKEN_RECEIVED_FILTER));
-
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 FCMMessageReceived, new IntentFilter(Constants.FCM_MESSAGE_FILTER));
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(
-                SettingsUpdatedReceiver, new IntentFilter(Constants.SETTINGS_CHANGED_FILTER));
 
         LocalBroadcastManager.getInstance(this).registerReceiver(
                 UITamperedReceiver, new IntentFilter(Constants.UI_TAMPERED_FILTER));
@@ -265,9 +223,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void tearDownReceivers() {
-//        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMTokenReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMMessageReceived);
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(SettingsUpdatedReceiver);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(UITamperedReceiver);
         unregisterReceiver(connectity_receiver);
     }

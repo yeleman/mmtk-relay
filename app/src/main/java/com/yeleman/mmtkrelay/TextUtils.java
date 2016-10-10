@@ -49,10 +49,7 @@ public class TextUtils {
         return "";
     }
 
-    public static String shortDateFormat(Date date) {
-        Log.d(Constants.TAG, "shortDateFormat: "+date.toString());
-        return Constants.DATE_FORMAT.format(date);
-    }
+    public static String shortDateFormat(Date date) { return Constants.DATE_FORMAT.format(date); }
 
     public static String fileDateFormat(Date date) { return Constants.FILE_DATE_FORMAT.format(date); }
 

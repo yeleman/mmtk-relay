@@ -6,9 +6,10 @@
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.RECEIVE_SMS" />
+    <uses-permission android:name="android.permission.SEND_SMS" />
     <uses-permission android:name="android.permission.READ_PHONE_STATE" />
     <uses-permission android:name="android.permission.PROCESS_OUTGOING_CALLS" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
     <application
         android:name="com.orm.SugarApp"
@@ -96,7 +97,40 @@
             android:exported="false" />
         <service
             android:name=".ServerAPIService"
-            android:exported="false"></service>
+            android:exported="false" />
+        <service
+            android:name=".IncomingCommandProcessor"
+            android:exported="false" />
+        <service
+            android:name=".OutgoingSMSService"
+            android:exported="false" />
+
+        <receiver
+            android:name=".OutgoingSMSStatusReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.yeleman.mmtkrelay.MESSAGE_STATUS" />
+                <data android:scheme="content" />
+            </intent-filter>
+        </receiver>
+        <!--<receiver-->
+            <!--android:name=".BootReceiver"-->
+            <!--android:exported="true">-->
+            <!--<intent-filter>-->
+                <!--<action android:name="com.yeleman.mmtkrelay.BOOT" />-->
+                <!--<action android:name="android.intent.action.BOOT_COMPLETED" />-->
+            <!--</intent-filter>-->
+        <!--</receiver>-->
+        <receiver
+            android:name=".OutgoingSMSDeliveryReceiver"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="com.yeleman.mmtkrelay.MESSAGE_DELIVERY" />
+                <data android:scheme="content" />
+            </intent-filter>
+        </receiver>
     </application>
 
 </manifest>

@@ -1,5 +1,7 @@
 package com.yeleman.mmtkrelay;
 
+import android.net.Uri;
+
 import com.orm.SugarRecord;
 import com.orm.dsl.Ignore;
 import com.orm.dsl.Table;
@@ -31,9 +33,11 @@ public class Operation extends SugarRecord {
     @Ignore
     public static final String BALANCE_RECEIVED_SMS = "balance_received_sms";
     @Ignore
-    public static final String TEXT_RECEIVED = "text_received";
+    public static final String INCOMING_TEXT = "incoming_text";
     @Ignore
-    public static final String CALL_RECEIVED = "call_received";
+    public static final String OUTGOING_TEXT = "outgoing_text";
+    @Ignore
+    public static final String INCOMING_CALL = "incoming_call";
     @Ignore
     public static final String DEPOSIT = "deposit";
     @Ignore
@@ -45,19 +49,20 @@ public class Operation extends SugarRecord {
         LABELS = new HashMap<>();
         LABELS.put(INCOMING_TRANSFER, "reçu");
         LABELS.put(OUTGOING_TRANSFER, "envoyé");
-        LABELS.put(CALL_RECEIVED, "dépot");
+        LABELS.put(DEPOSIT, "dépot");
         LABELS.put(BALANCE_REQUEST, "demande solde");
         LABELS.put(BALANCE_RECEIVED, "solde");
         LABELS.put(BALANCE_RECEIVED_SMS, "solde (SMS)");
-        LABELS.put(TEXT_RECEIVED, "SMS");
-        LABELS.put(CALL_RECEIVED, "appel");
+        LABELS.put(INCOMING_TEXT, "SMS reçu");
+        LABELS.put(OUTGOING_TEXT, "SMS envoyé");
+        LABELS.put(INCOMING_CALL, "appel");
     }
 
     @Ignore
     public static final Set<String> ACTIONS = new HashSet<>(Arrays.asList(new String[] {
             INCOMING_TRANSFER, OUTGOING_TRANSFER, BALANCE_REQUEST,
             BALANCE_RECEIVED, BALANCE_RECEIVED_SMS,
-            TEXT_RECEIVED, CALL_RECEIVED, DEPOSIT, PAYMENT }));
+            INCOMING_TEXT, INCOMING_CALL, OUTGOING_TEXT, DEPOSIT, PAYMENT }));
 
     @Ignore
     public static final Set<String> TRANSACTIONS = new HashSet<>(Arrays.asList(new String[] {
@@ -152,7 +157,15 @@ public class Operation extends SugarRecord {
     }
 
     static Long storeSMSText(String own_msisdn, Date created_on, String msisdn, String text) {
-        Operation operation = new Operation(own_msisdn, TEXT_RECEIVED);
+        Operation operation = new Operation(own_msisdn, INCOMING_TEXT);
+        operation.created_on = created_on;
+        operation.msisdn = msisdn;
+        operation.text = text;
+        return operation.save();
+    }
+
+    static Long storeOutgoingSMSText(String own_msisdn, Date created_on, String msisdn, String text) {
+        Operation operation = new Operation(own_msisdn, OUTGOING_TEXT);
         operation.created_on = created_on;
         operation.msisdn = msisdn;
         operation.text = text;
@@ -160,7 +173,7 @@ public class Operation extends SugarRecord {
     }
 
     static Long storeCall(String own_msisdn, Date created_on, String msisdn) {
-        Operation operation = new Operation(own_msisdn, CALL_RECEIVED);
+        Operation operation = new Operation(own_msisdn, INCOMING_CALL);
         operation.created_on = created_on;
         operation.msisdn = msisdn;
         return operation.save();
@@ -231,7 +244,13 @@ public class Operation extends SugarRecord {
 
     static Operation getLatestTransaction()
     {
-        return Select.from(Operation.class).where("action in ?", (String[]) TRANSACTIONS.toArray()).orderBy("created_on Desc").limit(Constants.DASHBOARD_ITEMS_LIMIT).first();
+        return Select.from(Operation.class).where("action in ?", (String[]) TRANSACTIONS.toArray()).orderBy("CREATEDON Desc").limit(Constants.DASHBOARD_ITEMS_LIMIT).first();
+    }
+
+    static Operation getFromUri(Uri uri) {
+        String[] params = new String[1];
+        params[0] = OUTGOING_TEXT;
+        return Select.from(Operation.class).where("action = ?", params).orderBy("CREATEDON Desc").limit("1").first();
     }
 
     public HashMap<String, Object> toHash() {
@@ -249,7 +268,7 @@ public class Operation extends SugarRecord {
             hm.put("msisdn", getMsisdn());
             hm.put("amount", getAmount());
             hm.put("fees", getFees());
-        } else if (action.equals(TEXT_RECEIVED)) {
+        } else if (action.equals(INCOMING_TEXT)) {
             hm.put("text", getText());
         }
 

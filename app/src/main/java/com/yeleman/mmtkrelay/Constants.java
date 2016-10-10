@@ -2,6 +2,7 @@ package com.yeleman.mmtkrelay;
 
 
 import android.graphics.Color;
+import android.net.Uri;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
@@ -33,6 +34,18 @@ public class Constants {
 
     public static final String DASHBOARD_ITEMS_LIMIT = "50";
     public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 20;
+
+    public static final Uri CONTENT_URI = Uri.parse("content://com.yeleman.mmtkrelay");
+    public static final Uri INCOMING_URI = Uri.withAppendedPath(CONTENT_URI, "incoming");
+    public static final Uri OUTGOING_URI = Uri.withAppendedPath(CONTENT_URI, "outgoing");
+
+    // OUTGOING SMS
+    public static final String MESSAGE_STATUS_INTENT = "com.yeleman.mmtkrelay.MESSAGE_STATUS";
+    public static final String MESSAGE_DELIVERY_INTENT = "com.yeleman.mmtkrelay.MESSAGE_DELIVERY";
+
+    public static final String STATUS_EXTRA_INDEX = "status";
+    public static final String STATUS_EXTRA_NUM_PARTS = "num_parts";
+    public static final String STATUS_EXTRA_SERVER_ID = "internal_id";
 
 
     public static int getConnectionColor(Boolean connected) {

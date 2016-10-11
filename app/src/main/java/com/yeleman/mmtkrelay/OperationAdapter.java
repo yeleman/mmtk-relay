@@ -27,6 +27,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
 
     OperationAdapter(Context context, ArrayList<Operation> users) {
         super(context, R.layout.item_operation, users);
+        setNotifyOnChange(true);
     }
 
     @Override
@@ -55,7 +56,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
 
         // Populate the data into the template view using the data object
         viewHolder.tvAction.setText(operation.getLabel());
-        viewHolder.tvAction.setBackgroundColor(Constants.getStatusColor(operation.getBooleanStatus()));
+        viewHolder.tvAction.setBackgroundColor(Constants.getStatusColor(operation.isSuccessful()));
         viewHolder.tvCreatedOn.setText(operation.getFormattedCreatedOn());
         if (operation.isTransaction() || operation.isBalance()) {
             viewHolder.tvAmountOrText.setText(operation.getFormattedAmountAndFees());
@@ -66,6 +67,12 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         viewHolder.tvTransactionId.setText(operation.getStrippedTransactionId());
 
         return convertView;
+    }
+
+    void reset() {
+        clear();
+        update();
+        notifyDataSetChanged();
     }
 
     void update() {
@@ -91,4 +98,19 @@ class OperationAdapter extends ArrayAdapter<Operation> {
             insert(operation, 0);
         }
     }
+
+    void updateSingle(Long id) {
+        for (int i = 0; i < getCount(); i++) {
+            Operation operation = getItem(i);
+            if (operation.getId() == id) {
+                operation = Operation.getBy(id);
+                notifyDataSetChanged();
+                return;
+            }
+        }
+    }
+//
+//    void updateIds(Long id) {
+//
+//    }
 }

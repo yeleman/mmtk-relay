@@ -195,7 +195,8 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (refreshDashboard) {
-            adapter.update();
+            Log.e(Constants.TAG, "refresh Dashboard");
+            adapter.reset();
         }
 
         if (refreshFailedItems) {

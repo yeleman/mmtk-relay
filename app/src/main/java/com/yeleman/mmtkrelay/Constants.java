@@ -36,8 +36,8 @@ public class Constants {
     public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 20;
 
     public static final Uri CONTENT_URI = Uri.parse("content://com.yeleman.mmtkrelay");
-    public static final Uri INCOMING_URI = Uri.withAppendedPath(CONTENT_URI, "incoming");
-    public static final Uri OUTGOING_URI = Uri.withAppendedPath(CONTENT_URI, "outgoing");
+    public static final Uri INCOMING_URI = Uri.withAppendedPath(CONTENT_URI, Operation.INCOMING_TEXT);
+    public static final Uri OUTGOING_URI = Uri.withAppendedPath(CONTENT_URI, Operation.OUTGOING_TEXT);
 
     // OUTGOING SMS
     public static final String MESSAGE_STATUS_INTENT = "com.yeleman.mmtkrelay.MESSAGE_STATUS";

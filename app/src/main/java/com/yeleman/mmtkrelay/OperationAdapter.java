@@ -109,8 +109,4 @@ class OperationAdapter extends ArrayAdapter<Operation> {
             }
         }
     }
-//
-//    void updateIds(Long id) {
-//
-//    }
 }

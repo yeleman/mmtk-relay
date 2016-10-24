@@ -1,6 +1,9 @@
 package com.yeleman.mmtkrelay;
 
 
+import android.content.Context;
+import android.content.pm.ApplicationInfo;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.net.Uri;
 
@@ -12,7 +15,6 @@ public class Constants {
 
     public static final String TAG = "LOG-MMTK";
     public static final String WAKELOCK_TAG = "MMTK-LOCK";
-    public static final String DATABASE_NAME = "mmtk.db";
     public static final DateFormat OAPI_HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss z", Locale.ENGLISH);
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM à kk'h'mm", Locale.FRANCE);
     public static final DateFormat FILE_DATE_FORMAT = new SimpleDateFormat("ddMMyyyykkmm", Locale.ENGLISH);
@@ -48,6 +50,14 @@ public class Constants {
     public static final String STATUS_EXTRA_NUM_PARTS = "num_parts";
     public static final String STATUS_EXTRA_SERVER_ID = "internal_id";
 
+    public static String getDatabaseName(Context context) {
+        try {
+            ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);
+            return ai.metaData.getString("DATABASE");
+        } catch (PackageManager.NameNotFoundException ex) {
+            return null;
+        }
+    }
 
     public static int getConnectionColor(Boolean connected) {
         if (connected == null) {

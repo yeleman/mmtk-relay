@@ -95,7 +95,7 @@ class Utils {
     }
 
     static Boolean exportDatabase(Context context) {
-        File localDBFile = context.getDatabasePath(Constants.DATABASE_NAME);
+        File localDBFile = context.getDatabasePath(Constants.getDatabaseName(context));
         Log.i(Constants.TAG, "DB exists: "+ localDBFile.exists());
 
         ExternalStorage sd = getExternalStorage();

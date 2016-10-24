@@ -23,7 +23,7 @@ class Requests {
 
     static final int DEFAULT_TIMEOUT = 6000;
 
-    static Response getResponse(String url, int timeout) {
+    static Response getResponse(String url, String authorization, int timeout) {
         HttpURLConnection c = null;
         Response response = null;
         try {
@@ -35,6 +35,9 @@ class Requests {
             c.setAllowUserInteraction(false);
             c.setConnectTimeout(timeout);
             c.setReadTimeout(timeout);
+            if (authorization != null) {
+                c.addRequestProperty("Authorization", authorization);
+            }
             c.connect();
 
             response = new Response(c);
@@ -54,7 +57,11 @@ class Requests {
         return response;
     }
     static Response getResponse(String url) {
-        return getResponse(url, DEFAULT_TIMEOUT);
+        return getResponse(url, null, DEFAULT_TIMEOUT);
+    }
+
+    static Response getResponse(String url, String authorization) {
+        return getResponse(url, authorization, DEFAULT_TIMEOUT);
     }
 
     static Response postJSON(String url, JSONObject params) { return postJSON(url, params, DEFAULT_TIMEOUT); }

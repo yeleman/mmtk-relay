@@ -50,6 +50,7 @@ public class Constants {
     public static final String STATUS_EXTRA_NUM_PARTS = "num_parts";
     public static final String STATUS_EXTRA_SERVER_ID = "internal_id";
 
+
     public static String getDatabaseName(Context context) {
         try {
             ApplicationInfo ai = context.getPackageManager().getApplicationInfo(context.getPackageName(), PackageManager.GET_META_DATA);

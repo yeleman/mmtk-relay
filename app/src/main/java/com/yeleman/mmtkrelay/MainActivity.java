@@ -4,9 +4,8 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
+import android.os.PowerManager;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -19,11 +18,6 @@ import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.firebase.iid.FirebaseInstanceId;
-
-import org.json.JSONException;
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -45,6 +39,9 @@ public class MainActivity extends AppCompatActivity {
         pages.put(ABOUT, R.id.content_about);
     }
 
+    // wake lock
+    PowerManager.WakeLock wakeLock;
+
     private Toolbar toolbar;
     // main header
     private TextView tvBalance;
@@ -61,22 +58,19 @@ public class MainActivity extends AppCompatActivity {
     OperationAdapter adapter;
     ListView lvOperations;
 
-    private SIMOrConnectivityChangedReceiver connectity_receiver;
+    private BroadcastReceiver NetworkStateChanged = new BroadcastReceiver() {
+        private boolean initial_network_state_received = false;
+        private boolean isInitialized() {
+            return initial_network_state_received;
+        }
 
-    private BroadcastReceiver FCMMessageReceived = new BroadcastReceiver() {
         @Override
-        public void onReceive(Context context, Intent intent) {
-            Log.d(Constants.TAG, "FCMMessageReceived onReceived");
-            String from = intent.getStringExtra("from");
-            if (!from.equals(session.getServerId())) {
-                Log.e(Constants.TAG, "Received message from different SERVER_ID: --" + from + "-- instead of: --" + session.getServerId()+ "--");
-            }
-            JSONObject jsdata = null;
-            try {
-                jsdata = new JSONObject(intent.getStringExtra("data"));
-            } catch (JSONException ex) {}
-            if (jsdata != null) {
-                Log.d(Constants.TAG, "Main activity received payload: " + jsdata.toString());
+        public void onReceive(final Context context, final Intent intent) {
+            Log.d(Constants.TAG, "Network State changed");
+            if (isInitialized()) {
+                Utils.updateConnexionsStatus(context);
+            } else {
+                initial_network_state_received = true;
             }
         }
     };
@@ -102,7 +96,6 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -110,7 +103,12 @@ public class MainActivity extends AppCompatActivity {
         session = new Session(this);
 
         // prevent device from going to sleep
-        Utils.AcquireWakeLock(this);
+        PowerManager powerManager = (PowerManager) this.getSystemService(Context.POWER_SERVICE);
+        wakeLock = powerManager.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, Constants.WAKELOCK_TAG);
+        wakeLock.setReferenceCounted(false);
+        if (!wakeLock.isHeld()) {
+            wakeLock.acquire();
+        }
 
         // build UI with all elements (pages hidden)
         setupUI();
@@ -119,7 +117,7 @@ public class MainActivity extends AppCompatActivity {
         setupReceivers();
 
         // check for network requirements
-        updateConnexionsStatus();
+        Utils.updateConnexionsStatus(this);
 
         // display dashboard
         switchToDashboard();
@@ -204,29 +202,19 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void setupFCMRegistration() { FirebaseInstanceId.getInstance().getToken(); }
-
     private void setupReceivers() {
 
         // Local receivers
         LocalBroadcastManager.getInstance(this).registerReceiver(
-                FCMMessageReceived, new IntentFilter(Constants.FCM_MESSAGE_FILTER));
-
-        LocalBroadcastManager.getInstance(this).registerReceiver(
                 UITamperedReceiver, new IntentFilter(Constants.UI_TAMPERED_FILTER));
 
-        // SIMOrConnectivityChangedReceiver
-        connectity_receiver = new SIMOrConnectivityChangedReceiver(this);
-        IntentFilter filter_sim = new IntentFilter("android.intent.action.SIM_STATE_CHANGED");
-        IntentFilter filter_conn = new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE");
-        registerReceiver(connectity_receiver, filter_sim);
-        registerReceiver(connectity_receiver, filter_conn);
+        // Connectivity Action
+        registerReceiver(NetworkStateChanged, new IntentFilter("android.net.conn.CONNECTIVITY_CHANGE"));
     }
 
     private void tearDownReceivers() {
-        LocalBroadcastManager.getInstance(this).unregisterReceiver(FCMMessageReceived);
         LocalBroadcastManager.getInstance(this).unregisterReceiver(UITamperedReceiver);
-        unregisterReceiver(connectity_receiver);
+        unregisterReceiver(NetworkStateChanged);
     }
 
     @Override
@@ -255,6 +243,7 @@ public class MainActivity extends AppCompatActivity {
                 this.exportDatabase();
                 return true;
             case R.id.check_connexions:
+                Utils.updateConnexionsStatus(this);
                 return true;
             case R.id.about:
                 this.switchToAbout();
@@ -269,18 +258,14 @@ public class MainActivity extends AppCompatActivity {
         Log.e(Constants.TAG, "onDestroy");
 
         // release lock on CPU
-        Utils.ReleaseWakeLock(this);
+        if (wakeLock.isHeld()) {
+            wakeLock.release();
+        }
 
         // release all receivers
         tearDownReceivers();
 
         super.onDestroy();
-    }
-    public void quit() {
-        this.finish();
-        moveTaskToBack(true);
-        android.os.Process.killProcess(android.os.Process.myPid());
-        System.exit(0);
     }
 
     public void exportDatabase() {
@@ -316,33 +301,5 @@ public class MainActivity extends AppCompatActivity {
         if (page != FAILED_ITEMS) { hidePage(FAILED_ITEMS); }
         if (page != ABOUT) { hidePage(ABOUT); }
         this.showPage(page);
-    }
-
-    public void updateConnexionsStatus() {
-        Log.d(Constants.TAG, "updateWithOMAPI");
-
-        // check for internet and networks requirements
-        updateOrangeConnexionStatus(null);
-        if (!Networks.isConnectedToOrangeMobile(this)) {
-            updateOrangeConnexionStatus(false);
-        } else {
-            // connected to Orange network
-            updateOrangeConnexionStatus(true);
-
-            // refresh token if necessary
-            setupFCMRegistration();
-
-            // update session
-            OrangeAPIService.startMsisdn(this);
-            OrangeAPIService.startUser(this);
-
-            // checking server connexion now
-            ServerAPIService.startConnexionCheck(this);
-        }
-    }
-
-    public void updateOrangeConnexionStatus(Boolean connected) {
-        session.setOrangeConnected(connected);
-        tvNetworkStatus.setTextColor(Constants.getConnectionColor(connected));
     }
 }

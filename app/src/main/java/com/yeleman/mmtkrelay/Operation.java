@@ -263,7 +263,7 @@ public class Operation extends SugarRecord {
         operation.created_on = created_on;
         operation.setStatus(PENDING);
         operation.setStatusOn(created_on);
-        operation.save();
+        return operation.save();
     }
 
     static Long storeBalance(String own_msisdn, Date created_on, Float balance) {

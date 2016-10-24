@@ -105,6 +105,14 @@
             android:name=".OutgoingSMSService"
             android:exported="false" />
 
+        <receiver android:name=".SIMCardChanged"
+            android:enabled="true"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.SIM_STATE_CHANGED" />
+            </intent-filter>
+        </receiver>
+
         <receiver
             android:name=".OutgoingSMSStatusReceiver"
             android:enabled="true"

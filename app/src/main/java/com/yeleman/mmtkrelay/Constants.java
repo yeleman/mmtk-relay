@@ -11,6 +11,7 @@ import java.util.Locale;
 public class Constants {
 
     public static final String TAG = "LOG-MMTK";
+    public static final String WAKELOCK_TAG = "MMTK-LOCK";
     public static final String DATABASE_NAME = "mmtk.db";
     public static final DateFormat OAPI_HEADER_DATE_FORMAT = new SimpleDateFormat("EEE, dd MMM yyyy kk:mm:ss z", Locale.ENGLISH);
     public static final DateFormat DATE_FORMAT = new SimpleDateFormat("dd MMM à kk'h'mm", Locale.FRANCE);

@@ -26,6 +26,7 @@ import java.util.Hashtable;
 public class MainActivity extends AppCompatActivity {
 
     public Session session;
+    private static final String TAG = "LOG-MMTK-MainActivity";
     private static final String DASHBOARD = "dashboard";
     private static final String FAILED_ITEMS = "failed_items";
     private static final String ABOUT = "about";
@@ -78,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
     private BroadcastReceiver UITamperedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            Log.d(Constants.TAG, "UITamperedReceiver onReceived");
+            //Log.d(Constants.TAG, "UITamperedReceiver onReceived");
             Boolean refreshMsisdn = intent.getBooleanExtra("refreshMsisdn", false);
             Boolean refreshUser = intent.getBooleanExtra("refreshUser", false);
             Boolean refreshBalance = intent.getBooleanExtra("refreshBalance", false);
@@ -87,10 +88,10 @@ public class MainActivity extends AppCompatActivity {
             Boolean refreshServerStatus = intent.getBooleanExtra("refreshServerStatus", false);
             Boolean refreshNetworkStatus = intent.getBooleanExtra("refreshNetworkStatus", false);
             if (refreshMsisdn || refreshUser || refreshNetworkStatus || refreshServerStatus) {
-                Log.w(Constants.TAG, "brui refreshing session ");
+                //Log.w(Constants.TAG, "brui refreshing session ");
                 session.reloadPreferences();
             }
-            Log.w(Constants.TAG, "br ui tamp: " + session.getServerConnected());
+            //Log.w(Constants.TAG, "br ui tamp: " + session.getServerConnected());
             redrawUI(refreshMsisdn, refreshUser, refreshBalance, refreshDashboard, refreshFailedItems,
                      refreshNetworkStatus, refreshServerStatus);
         }
@@ -121,6 +122,18 @@ public class MainActivity extends AppCompatActivity {
 
         // display dashboard
         switchToDashboard();
+
+        // TODO: remove debug
+        if (DHISUtils.parseReportJSONFile(this, "palu-v1.json")) {
+            Log.d(TAG, "read JSON file OK");
+//            String identity = "+24373120896";
+//            String smsText = "check sf_zsf_y3";
+//            smsText = "check R8gft_vGft_bgzSgbmx_2ngyn-";
+//            DHISUtils.testIncomingText(this, identity, smsText);
+        } else {
+            Log.d(TAG, "unable to read JSON file");
+        }
+
     }
 
     protected void setupUI() {
@@ -148,16 +161,15 @@ public class MainActivity extends AppCompatActivity {
     protected void redrawUI(Boolean refreshMsisdn, Boolean refreshUser, Boolean refreshBalance,
                             Boolean refreshDashboard, Boolean refreshFailedItems,
                             Boolean refreshNetworkStatus, Boolean refreshServerStatus) {
-        Log.e(Constants.TAG, "redrawUI refreshMsisdn:"+refreshMsisdn+ " refreshUser:"+refreshUser+
-                " refreshBalance:"+refreshBalance+" refreshDashboard:"+refreshDashboard+" refreshFailedItems:"+refreshFailedItems+
-                " refreshNetworkStatus:"+refreshNetworkStatus+" refreshServerStatus:"+refreshServerStatus);
+//        Log.e(Constants.TAG, "redrawUI refreshMsisdn:"+refreshMsisdn+ " refreshUser:"+refreshUser+
+//                " refreshBalance:"+refreshBalance+" refreshDashboard:"+refreshDashboard+" refreshFailedItems:"+refreshFailedItems+
+//                " refreshNetworkStatus:"+refreshNetworkStatus+" refreshServerStatus:"+refreshServerStatus);
 
         if (refreshNetworkStatus) {
             tvNetworkStatus.setTextColor(Constants.getConnectionColor(session.getOrangeConnected()));
         }
 
         if (refreshServerStatus) {
-            Log.w(Constants.TAG, "tv update: " + session.getServerConnected());
             tvServerStatus.setTextColor(Constants.getConnectionColor(session.getServerConnected()));
             if (session.getServerConnected() != null && session.getServerConnected()) {
                 // connected to server ; ensure we sent our token

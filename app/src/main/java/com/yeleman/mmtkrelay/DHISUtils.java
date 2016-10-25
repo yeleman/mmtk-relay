@@ -3,14 +3,11 @@ package com.yeleman.mmtkrelay;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
-import android.text.*;
 import android.text.TextUtils;
+import android.util.Base64;
 import android.util.Log;
 
-import com.google.gson.annotations.JsonAdapter;
-
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -18,86 +15,234 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 
-import okhttp3.Credentials;
-
-class DHISResponse {
+class DHISCredentialsResponse {
     final static String STATUS_SUCCESS = "success";
-    final static String STATUS_FAILURE = "failure";
     final static String STATUS_NETWORK_FAILURE = "network_failure";
     final static String STATUS_SERVER_ERROR = "server_error";
     final static String STATUS_AUTH_ERROR = "auth_error";
     final static String STATUS_DHIS_ERROR = "dhis_error";
-
-    String status = null;
+    private String status = null;
     ArrayList<String[]> userOrganisationUnits = null;
 
     String getStatus() { return this.status; }
     void setStatus(String status) { this.status = status; }
-    public boolean isSuccessful() { return status.equals(STATUS_SUCCESS); }
-    public boolean isTemporaryFailure() { return status.equals(STATUS_NETWORK_FAILURE); }
+    public boolean isSuccessful() { return getStatus().equals(STATUS_SUCCESS); }
+    public boolean isTemporaryFailure() { return getStatus().equals(STATUS_NETWORK_FAILURE); }
+    public boolean isServerError() { return getStatus().equals(STATUS_SERVER_ERROR); }
+    public boolean isDHISError() { return getStatus().equals(STATUS_DHIS_ERROR); }
 
-    public DHISResponse() {}
+    public DHISCredentialsResponse() { setStatus(null); }
 
-    static DHISResponse fromCredentialsCheckResponse(Context context, Response response) {
-        DHISResponse dhisResponse = new DHISResponse();
+    static DHISCredentialsResponse fromResponse(Context context, Response response) {
+        DHISCredentialsResponse dhisCredentialsResponse = new DHISCredentialsResponse();
         // unable to connect to DHIS server
         if (response == null) {
-            dhisResponse.setStatus(DHISResponse.STATUS_NETWORK_FAILURE);
-            return dhisResponse;
+            dhisCredentialsResponse.setStatus(DHISCredentialsResponse.STATUS_NETWORK_FAILURE);
+            return dhisCredentialsResponse;
         }
         // did not return 200
         if (!response.succeeded()) {
             if (response.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
-                dhisResponse.setStatus(DHISResponse.STATUS_AUTH_ERROR);
+                dhisCredentialsResponse.setStatus(DHISCredentialsResponse.STATUS_AUTH_ERROR);
             } else {
-                dhisResponse.setStatus(DHISResponse.STATUS_SERVER_ERROR);
+                dhisCredentialsResponse.setStatus(DHISCredentialsResponse.STATUS_SERVER_ERROR);
             }
-            return dhisResponse;
+            return dhisCredentialsResponse;
         }
 
         JSONObject jsonObject = response.getJSON();
         // shouldn't happen
         if (jsonObject == null) {
-            dhisResponse.setStatus(DHISResponse.STATUS_DHIS_ERROR);
-            return dhisResponse;
+            dhisCredentialsResponse.setStatus(DHISCredentialsResponse.STATUS_DHIS_ERROR);
+            return dhisCredentialsResponse;
         }
 
         JSONArray orgUnitsArray = DHISUtils.getJSONArray(jsonObject, DHISUtils.KEY_ORGANISATION_UNITS);
         if (orgUnitsArray == null || orgUnitsArray.length() == 0) {
-            dhisResponse.setStatus(DHISResponse.STATUS_AUTH_ERROR);
-            return dhisResponse;
+            dhisCredentialsResponse.setStatus(DHISCredentialsResponse.STATUS_AUTH_ERROR);
+            return dhisCredentialsResponse;
         }
 
-        dhisResponse.userOrganisationUnits = new ArrayList<>();
+        dhisCredentialsResponse.userOrganisationUnits = new ArrayList<>();
         List<String> validOrganisationUnits = Arrays.asList(DHISUtils.getValidOrganisationUnits(context));
+        Log.d(DHISUtils.TAG, validOrganisationUnits.size() + " / " + validOrganisationUnits.toString());
         for (int i=0; i<orgUnitsArray.length(); i++) {
             JSONObject orgUnitObject = DHISUtils.getJSONObject(orgUnitsArray, i);
             if (orgUnitObject == null) { continue; }
             String orgUnitId = DHISUtils.getString(orgUnitObject, DHISUtils.KEY_ID);
             String orgUnitName = DHISUtils.getString(orgUnitObject, DHISUtils.KEY_NAME);
+            Log.d(DHISUtils.TAG, orgUnitId);
             if (!validOrganisationUnits.contains(orgUnitId)) {
                 continue;
             }
-            dhisResponse.userOrganisationUnits.add(new String[]{orgUnitId, orgUnitName});
+            dhisCredentialsResponse.userOrganisationUnits.add(new String[]{orgUnitId, orgUnitName});
         }
-        dhisResponse.setStatus(STATUS_SUCCESS);
-        return dhisResponse;
+        dhisCredentialsResponse.setStatus(STATUS_SUCCESS);
+        return dhisCredentialsResponse;
+    }
+}
+
+class DHISUploadResponse {
+    final static String STATUS_SUCCESS = "success";
+    final static String STATUS_NETWORK_FAILURE = "network_failure";
+    final static String STATUS_SERVER_ERROR = "server_error";
+    final static String STATUS_AUTH_ERROR = "auth_error";
+    final static String STATUS_DHIS_ERROR = "dhis_error";
+    final static String STATUS_DATA_ERROR = "data_error";
+
+    private Context context = null;
+    private String status = null;
+    private String description = null;
+    private int deleted = 0;
+    private int ignored = 0;
+    private int updated = 0;
+    private int imported = 0;
+
+    int getDeleted() { return this.deleted; }
+    void setDeleted(Integer deleted) { this.deleted = (deleted == null) ? 0 : deleted; }
+    int getIgnored() { return this.ignored; }
+    void setIgnored(Integer ignored) { this.ignored = (ignored == null) ? 0 : ignored; }
+    int getUpdated() { return this.updated; }
+    void setUpdated(Integer updated) { this.updated = (updated == null) ? 0 : updated; }
+    int getImported() { return this.imported; }
+    void setImported(Integer imported) { this.imported = (imported == null) ? 0 : imported; }
+
+    Context getContext() { return this.context; }
+    void setContext(Context context) { this.context = context; }
+    String getDescription() { return this.description; }
+    void setDescription(String description) { this.description = description; }
+    String getStatus() { return this.status; }
+    void setStatus(String status) { this.status = status; }
+    public boolean isSuccessful() { return getStatus().equals(STATUS_SUCCESS); }
+    public boolean isTemporaryFailure() { return getStatus().equals(STATUS_NETWORK_FAILURE); }
+    public boolean isServerError() { return getStatus().equals(STATUS_SERVER_ERROR); }
+    public boolean isDHISError() { return getStatus().equals(STATUS_DHIS_ERROR); }
+
+    public DHISUploadResponse(Context context) {
+        setContext(context);
+        setStatus(null);
     }
 
-    static DHISResponse fromUploadReportResponse(Context context, Response response) {
+    String getStatusFromCounts() {
+        if (getImported() == 0 && getUpdated() == 0) {
+            return STATUS_DATA_ERROR;
+        }
+        return STATUS_SUCCESS;
+    }
+    void setStatusFromCounts() { setStatus(getStatusFromCounts()); }
+
+    String getSMSReply() { return String.format("[%s:%s] %s", DHISUtils.getSMSLabel(getContext()), getPrefix(), getMessage()); }
+
+    String getMessage() {
+        String message = "";
+        switch (getStatus()) {
+            case STATUS_SUCCESS:
+
+                message = String.format(Locale.FRANCE,
+                        "Donnees enregistrees: %1$d ajoutee(s), %2$d mise(s) a jour, %3$d ignoree(s).",
+                        getImported(), getUpdated(), getIgnored());
+                break;
+            case STATUS_AUTH_ERROR:
+                message = "Identification incorecte. Verifiez vos identifiants et vos droits d'acces.";
+                break;
+            case STATUS_DATA_ERROR:
+                if (getDescription() != null) {
+                    message = "Donnees rejetees: " + getDescription();
+                } else {
+                    message = "Vos donnees ont ete refusees.";
+                }
+                break;
+            case STATUS_DHIS_ERROR:
+            case STATUS_SERVER_ERROR:
+                message = "Une erreur s'est produite lors de l'envoi au serveur. Reessayez plus tard. Contacter le support si le probleme persiste";
+                break;
+            case STATUS_NETWORK_FAILURE:
+                message = "Probleme de connexion entre le relai et le serveur. Si vous n'avez pas eu de retour sous 1h, contactez le support";
+                break;
+        }
+        if (message.length() > getMessageMaxLength()) {
+            return message.substring(0, getMessageMaxLength());
+        }
+        return message;
+    }
+
+    int getMessageMaxLength() {
+        return DHISUtils.MAX_SMS_CHARS - getPrefix().length();
+    }
+
+    String getPrefix() {
+        switch (getStatus()) {
+            case STATUS_SUCCESS:
+                return DHISUtils.PREFIX_SUCCESS;
+            case STATUS_AUTH_ERROR:
+            case STATUS_DATA_ERROR:
+            case STATUS_DHIS_ERROR:
+            case STATUS_SERVER_ERROR:
+                return DHISUtils.PREFIX_ERROR;
+            case STATUS_NETWORK_FAILURE:
+                return DHISUtils.PREFIX_WARNING;
+        }
+    }
+
+    static DHISUploadResponse fromResponse(Context context, Response response) {
+        DHISUploadResponse dhisUploadResponse = new DHISUploadResponse();
+        // unable to connect to DHIS server
+        if (response == null) {
+            dhisUploadResponse.setStatus(STATUS_NETWORK_FAILURE);
+            return dhisUploadResponse;
+        }
+        // did not return 200
         if (!response.succeeded()) {
-            // network access? connectivity or URL problem
-            // auth error ?
+            if (response.getResponseCode() == HttpURLConnection.HTTP_UNAUTHORIZED) {
+                dhisUploadResponse.setStatus(STATUS_AUTH_ERROR);
+            } else {
+                dhisUploadResponse.setStatus(STATUS_SERVER_ERROR);
+            }
+            return dhisUploadResponse;
         }
-        return new DHISResponse();
-    }
 
+        JSONObject jsonObject = response.getJSON();
+        // shouldn't happen
+        if (jsonObject == null) {
+            dhisUploadResponse.setStatus(STATUS_DHIS_ERROR);
+            return dhisUploadResponse;
+        }
+
+        String status = DHISUtils.getString(jsonObject, "status");
+        if (status.equals("SUCCESS")) {
+            // not successful ; so no import
+            dhisUploadResponse.setStatus(STATUS_DHIS_ERROR);
+            return dhisUploadResponse;
+        }
+
+        String responseType = DHISUtils.getString(jsonObject, "responseType");
+        if (!responseType.equals("ImportSummary")) {
+            // not an import summary ; so no import?
+            dhisUploadResponse.setStatus(STATUS_DHIS_ERROR);
+            return dhisUploadResponse;
+        }
+
+        JSONObject importCount = DHISUtils.getJSONObject(jsonObject, "importCount");
+        if (importCount != null) {
+            dhisUploadResponse.setDeleted(DHISUtils.getInt(importCount, "deleted"));
+            dhisUploadResponse.setIgnored(DHISUtils.getInt(importCount, "ignored"));
+            dhisUploadResponse.setImported(DHISUtils.getInt(importCount, "imported"));
+            dhisUploadResponse.setUpdated(DHISUtils.getInt(importCount, "updated"));
+        }
+
+        dhisUploadResponse.setStatusFromCounts();
+
+        return dhisUploadResponse;
+    }
 }
 
 public class DHISUtils {
@@ -125,8 +270,12 @@ public class DHISUtils {
     static final String KEY_SMS_FORMAT = "smsFormat";
     static final String KEY_ORGANISATION_UNITS = "organisationUnits";
 
+    static final int MAX_SMS_CHARS = 160;
     static final String SMS_SPACER = " ";
     static final String MISSING_VALUE = "-";
+    final static String PREFIX_SUCCESS = "OK";
+    final static String PREFIX_WARNING = "/!\\";
+    final static String PREFIX_ERROR = "ERROR";
 
     static final String KEY_DATAELEMENT = "dataElement";
     static final String KEY_CATEGORYOPTIONCOMBO = "categoryOptionCombo";
@@ -136,27 +285,71 @@ public class DHISUtils {
     static final String KEY_PERIOD = "period";
     static final String KEY_DATASET = "dataSet";
     static final String KEY_ORGUNIT = "orgUnit";
+
+    static final DateFormat DHIS_DATE_FORMAT = new SimpleDateFormat("YYYY-MM-DD", java.util.Locale.getDefault());
     
     static final String[] PLAIN_CHARACTERS = "abcdefghijklmnopqrstuvwxyz:1234567890_-".split("");
     static final String[] TRANSLATED_CHARACTERS = "f12_8sy3bco47gnadxmqtij6:wz-09phe5krlvu".split("");
 
-    public static void testIncomingText(Context context, String smsText) {
+    public static Boolean handleIncomingText(final Context context, String identity, String smsText) {
         if (isDHISCredentialsCheckSMS(context, smsText)) {
-            Log.d(TAG, "credentials check SMS");
-            String[] parts = smsText.split(SMS_SPACER, 1);
+            Log.d(TAG, "credentials check SMS: "+ smsText);
+            String[] parts = smsText.split(SMS_SPACER, 2);
             if (parts.length != 2) {
-                Log.e(TAG, "invalid SMS format for credentials");
-                return;
+                Log.e(TAG, "invalid SMS format for credentials: "+ parts.length);
+                return true;
             }
             String[] credentials = getDeobfuscatedCredentials(parts[1]);
-            DHISResponse dhisResponse = DHISResponse.fromCredentialsCheckResponse(context, checkCredentials(context, credentials[0], credentials[1]));
-            Log.d(TAG, "DHISResponse: "+ dhisResponse.getStatus());
+            checkCredentials(context, identity, credentials[0], credentials[1]);
+            return true;
         } else if (isDHISReportSMS(context, smsText)) {
             Log.d(TAG, "DHIS report SMS");
 
+            // whether an indexed values report SMS or regular
+            Boolean isIndexed = smsText.startsWith("i:");
+
+            // split metadata and body
+            String[] parts = smsText.split("#", 1);
+            if (parts.length != 2) {
+                Log.e(TAG, "invalid SMS format for report: "+ parts.length);
+                return true;
+            }
+
+            // extra individual metadata
+            String[] metadataParts = parts[0].split(SMS_SPACER, 4);
+            if (metadataParts.length != 4) {
+                Log.e(TAG, "invalid SMS format for report (metadata): "+ metadataParts.length);
+                return true;
+            }
+
+            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+            int version = -1;
+            try { version = Integer.valueOf(metadataParts[1]); } catch (Exception ex) {}
+            String obfucastedCredentials = metadataParts[2];
+            String organisationUnit = metadataParts[3];
+
+            if (version != sharedPreferences.getInt(KEY_DHIS_VERSION, -1)) {
+                // reply different SMS version
+                Log.e(TAG, "SMS format version differs from relay");
+                // OutgoingSMSService.startSingleSMS(context, identity, "");
+                return true;
+            }
+
+            // retrieve clear-text credentials
+            String[] credentials = getDeobfuscatedCredentials(obfucastedCredentials);
+            String username = credentials[0];
+            String password = credentials[1];
+
+            // build-up dataValues part of request
+            JSONObject payload = buildDHISJSONPayload(context, "201609", organisationUnit, parts[1], isIndexed);
+            uploadReport(context, identity, username, password, payload);
+
+            return true;
         } else {
             Log.d(TAG, "unknown type SMS");
         }
+        return false;
     }
 
     public static String readAssetFile(Context context, String fileName) {
@@ -187,12 +380,29 @@ public class DHISUtils {
             return false;
         }
 
-        // SMS format version
+        // extract meta data from SMS
         String datasetId = getString(jsonObject, KEY_DATASET_ID);
         String keyword = getString(jsonObject, KEY_KEYWORD);
         Integer version = getInt(jsonObject, KEY_VERSION);
         String[] smsFormat = toStringArray(getJSONArray(jsonObject, KEY_SMS_FORMAT));
-        String[] organisationUnits = toStringArray(getJSONArray(jsonObject, KEY_ORGANISATION_UNITS));
+
+        String[] organisationUnits;
+        JSONArray orgUnitsArray = getJSONArray(jsonObject, KEY_ORGANISATION_UNITS);
+        if (orgUnitsArray != null) {
+            organisationUnits = new String[orgUnitsArray.length()];
+            for (int i = 0; i < orgUnitsArray.length(); i++) {
+                JSONObject jso = getJSONObject(orgUnitsArray, i);
+                if (jso != null) {
+                    String id = getString(jso, KEY_ID);
+                    if (id != null) {
+                        organisationUnits[i] = id;
+                    }
+                }
+            }
+        } else {
+            organisationUnits = new String[0];
+        }
+
         if (keyword == null || version == null ||
                 smsFormat == null || smsFormat.length == 0 ||
                 organisationUnits == null || organisationUnits.length == 0) {
@@ -204,6 +414,7 @@ public class DHISUtils {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         SharedPreferences.Editor sharedPreferencesEditor = sharedPreferences.edit();
 
+        sharedPreferencesEditor.putString(KEY_DHIS_CREDENTIALS_KEYWORD, "check");
         sharedPreferencesEditor.putString(KEY_DATASET_ID, datasetId);
         sharedPreferencesEditor.putString(KEY_DHIS_REPORT_KEYWORD, keyword);
         sharedPreferencesEditor.putInt(KEY_DHIS_VERSION, version);
@@ -281,6 +492,14 @@ public class DHISUtils {
             }
         }
         return false;
+    }
+
+    public static JSONObject getJSONObject(JSONObject obj, String key) {
+        try {
+            return obj.getJSONObject(key);
+        } catch (JSONException ex) {
+            return null;
+        }
     }
 
     public static JSONObject getJSONObject(JSONArray obj, int index) {
@@ -397,17 +616,13 @@ public class DHISUtils {
         return jsonArray;
     }
 
-    public static Boolean handleIncomingSMSReport() {
-        return true;
-    }
-
-    public static JSONObject buildDHISJSONPayload(Context context, String period, String organisationUnit, String dataText, Boolean indexedVersion) {
+    public static JSONObject buildDHISJSONPayload(
+            Context context, String period, String organisationUnit, String dataText, Boolean indexedVersion) {
         SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
         JSONObject jsonObject = new JSONObject();
 
         String datasetId = sharedPreferences.getString(KEY_DHIS_DATASET_ID, null);
-        // TODO: verify date format pattern online
-        String completeDate = DateFormatUtils.format(new Date(), "YYYY-MM-DD");
+        String completeDate = DHIS_DATE_FORMAT.format(new Date());
         JSONArray dataValues = getJSONPayloadFrom(context, dataText, indexedVersion);
 
         try {
@@ -433,26 +648,86 @@ public class DHISUtils {
         return serverUrl;
     }
 
+    public static String getSMSLabel(Context context) {
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+        return sharedPreferences.getString(KEY_DHIS_REPORT_KEYWORD, "").toUpperCase();
+    }
+
     public static String getAbsoluteDHISUrl(Context context, String path) {
         return getDHISServerUrl(context) + path;
     }
 
     public static String getBasicCredentials(String username, String password) {
-        return Credentials.basic(username,password);
+            String credentials = username + ":" + password;
+            return "Basic " + new String(Base64.encode(credentials.getBytes(), Base64.DEFAULT));
     }
 
-    public static Response checkCredentials(Context context, String username, String password) {
-        Response response = Requests.getResponse(
-                getAbsoluteDHISUrl(context, API_USER_ACCOUNT_URL),
-                getBasicCredentials(username, password));
-        return response;
+    public static HashMap<String, String> getBasicAuthorizationHeaders(String username, String password) {
+        HashMap<String, String> headers = new HashMap<>();
+        headers.put("Authorization", getBasicCredentials(username, password));
+        return headers;
     }
 
-    public static Response uploadReport(Context context, String username, String password, JSONObject payload) {
-        Response response = Requests.postJSON(
-                getAbsoluteDHISUrl(context, API_DATASET_UPLOAD_URL),
-                payload);
+    public static void checkCredentials(final Context context, final String identity, final String username, final String password) {
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                DHISCredentialsResponse dhisCredentialsResponse = DHISCredentialsResponse.fromResponse(
+                        context,
+                        Requests.getResponse(
+                                getAbsoluteDHISUrl(context, API_USER_ACCOUNT_URL),
+                                getBasicAuthorizationHeaders(username, password)));
+                Log.d(TAG, "DHISCredentialsResponse: "+ dhisCredentialsResponse.getStatus());
 
-        return response;
+                String statusCode = "ERROR";
+                String message = "";
+                if (dhisCredentialsResponse.isSuccessful() && !dhisCredentialsResponse.userOrganisationUnits.isEmpty()) {
+                    // perfect
+                    statusCode = "OK";
+                    for(String[] orgUnit: dhisCredentialsResponse.userOrganisationUnits) {
+                        message += String.format("%s=%s |", orgUnit[0], orgUnit[1]);
+                    }
+                    message = message.substring(0, message.length() - 1).trim();
+                } else if (dhisCredentialsResponse.isSuccessful()) {
+                    // credentials OK but no Org Units
+                    statusCode = "/!\\";
+                    message = "Vos identifiants DHIS sont corrects mais vous n'avez pas d'unité d'organisation pour ce rapport";
+                } else if (dhisCredentialsResponse.isTemporaryFailure()) {
+                    // problem here. try again later
+                    message = "Problème d'acces au serveur au niveau du relai. Reessayez plus tard ou contacter le support.";
+                } else if (dhisCredentialsResponse.isServerError()){
+                    // server error. try again later or contact support
+                    message = "Erreur sur le serveur DHIS. Reessayez plus tard ou contacter le support.";
+                } else {
+                    // DHIS error. your bad.
+                    message = "Identifiants DHIS incorrects";
+                }
+                String smsText = String.format("[%s:%s] %s", "DHIS", statusCode, message);
+                Log.e(TAG, "SMS to " + identity + ": " + smsText);
+                OutgoingSMSService.startSingleSMS(context, identity, smsText);
+            }
+        };
+        new Thread(task).start();
     }
+
+    public static void uploadReport(final Context context, final String identity, final String username, final String password, JSONObject payload) {
+        Runnable task = new Runnable() {
+            @Override
+            public void run() {
+                DHISUploadResponse dhisUploadResponse = DHISUploadResponse.fromResponse(
+                        context,
+                        Requests.getResponse(
+                                getAbsoluteDHISUrl(context, API_DATASET_UPLOAD_URL),
+                                getBasicAuthorizationHeaders(username, password)));
+                Log.d(TAG, "DHISUploadResponse: "+ dhisUploadResponse.getStatus());
+
+
+                String smsText = dhisUploadResponse.getSMSReply();
+                Log.e(TAG, "SMS to " + identity + ": " + smsText);
+                OutgoingSMSService.startSingleSMS(context, identity, smsText);
+            }
+        };
+        new Thread(task).start();
+    }
+
 }

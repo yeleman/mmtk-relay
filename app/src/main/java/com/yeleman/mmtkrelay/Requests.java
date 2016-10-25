@@ -16,6 +16,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -23,7 +24,7 @@ class Requests {
 
     static final int DEFAULT_TIMEOUT = 6000;
 
-    static Response getResponse(String url, String authorization, int timeout) {
+    static Response getResponse(String url, HashMap<String, String> headers, int timeout) {
         HttpURLConnection c = null;
         Response response = null;
         try {
@@ -35,8 +36,10 @@ class Requests {
             c.setAllowUserInteraction(false);
             c.setConnectTimeout(timeout);
             c.setReadTimeout(timeout);
-            if (authorization != null) {
-                c.addRequestProperty("Authorization", authorization);
+            if (headers != null) {
+                for(Map.Entry<String, String> entry: headers.entrySet()) {
+                    c.addRequestProperty(entry.getKey(), entry.getValue());
+                }
             }
             c.connect();
 
@@ -60,8 +63,8 @@ class Requests {
         return getResponse(url, null, DEFAULT_TIMEOUT);
     }
 
-    static Response getResponse(String url, String authorization) {
-        return getResponse(url, authorization, DEFAULT_TIMEOUT);
+    static Response getResponse(String url, HashMap<String, String> headers) {
+        return getResponse(url, headers, DEFAULT_TIMEOUT);
     }
 
     static Response postJSON(String url, JSONObject params) { return postJSON(url, params, DEFAULT_TIMEOUT); }

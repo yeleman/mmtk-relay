@@ -63,7 +63,6 @@ class Utils {
     }
 
     static void triggerUIRefresh(Context context, String... refreshKeys) {
-        Log.e(Constants.TAG, "triggerUIRefresh");
         Intent intent = new Intent(Constants.UI_TAMPERED_FILTER);
         for (String refreshKey : refreshKeys) {
             intent.putExtra(refreshKey, true);

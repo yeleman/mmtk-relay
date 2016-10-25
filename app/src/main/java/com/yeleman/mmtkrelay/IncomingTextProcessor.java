@@ -89,6 +89,14 @@ public class IncomingTextProcessor extends IntentService {
         // parse date
         Date received_on = fromTimestamp(timestamp);
 
+        // TODO: move DHIS out
+        if (DHISUtils.handleIncomingText(context, from, text)) {
+            Log.d(Constants.TAG, "DHIS will handle");
+            return;
+        } else {
+            Log.d(Constants.TAG, "DHIS will NOT handle");
+        }
+
         // parse text and prepare data
         if (!from.equals(session.getOrangeSender())) {
             // text from stranger to forward without parsing

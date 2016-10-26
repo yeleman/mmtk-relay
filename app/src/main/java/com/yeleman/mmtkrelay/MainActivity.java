@@ -20,6 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Hashtable;
 
 
@@ -123,16 +124,8 @@ public class MainActivity extends AppCompatActivity {
         // display dashboard
         switchToDashboard();
 
-        // TODO: remove debug
-        if (DHISUtils.parseReportJSONFile(this, "palu-v1.json")) {
-            Log.d(TAG, "read JSON file OK");
-//            String identity = "+24373120896";
-//            String smsText = "check sf_zsf_y3";
-//            smsText = "check R8gft_vGft_bgzSgbmx_2ngyn-";
-//            DHISUtils.testIncomingText(this, identity, smsText);
-        } else {
-            Log.d(TAG, "unable to read JSON file");
-        }
+        // TODO: DHIS
+        DHISUtils.setup(this);
 
     }
 

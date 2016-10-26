@@ -22,9 +22,9 @@ import java.util.Map;
 
 class Requests {
 
-    static final int DEFAULT_TIMEOUT = 6000;
+    private static final int DEFAULT_TIMEOUT = 10;
 
-    static Response getResponse(String url, HashMap<String, String> headers, int timeout) {
+    static Response getResponse(String url, HashMap<String, String> headers, int secondsTimeout) {
         HttpURLConnection c = null;
         Response response = null;
         try {
@@ -34,8 +34,8 @@ class Requests {
             c.setRequestProperty("Content-length", "0");
             c.setUseCaches(false);
             c.setAllowUserInteraction(false);
-            c.setConnectTimeout(timeout);
-            c.setReadTimeout(timeout);
+            c.setConnectTimeout(secondsTimeout * 1000);
+            c.setReadTimeout(secondsTimeout * 1000);
             if (headers != null) {
                 for(Map.Entry<String, String> entry: headers.entrySet()) {
                     c.addRequestProperty(entry.getKey(), entry.getValue());
@@ -67,9 +67,15 @@ class Requests {
         return getResponse(url, headers, DEFAULT_TIMEOUT);
     }
 
-    static Response postJSON(String url, JSONObject params) { return postJSON(url, params, DEFAULT_TIMEOUT); }
+    static Response postJSON(String url, JSONObject params, HashMap<String, String> headers) {
+        return postJSON(url, params, headers, DEFAULT_TIMEOUT);
+    }
 
-    static Response postJSON(String url, JSONObject params, int timeout) {
+    static Response postJSON(String url, JSONObject params) {
+        return postJSON(url, params, null, DEFAULT_TIMEOUT);
+    }
+
+    static Response postJSON(String url, JSONObject params, HashMap<String, String> headers, int secondsTimeout) {
         HttpURLConnection c = null;
         Response response = null;
         try {
@@ -80,8 +86,13 @@ class Requests {
             c.setRequestProperty("Content-Type", "application/json; charset=UTF-8");
             c.setUseCaches(false);
             c.setAllowUserInteraction(false);
-            c.setConnectTimeout(timeout);
-            c.setReadTimeout(timeout);
+            c.setConnectTimeout(secondsTimeout * 1000);
+            c.setReadTimeout(secondsTimeout * 1000);
+            if (headers != null) {
+                for(Map.Entry<String, String> entry: headers.entrySet()) {
+                    c.addRequestProperty(entry.getKey(), entry.getValue());
+                }
+            }
 //            c.connect();
             OutputStream os = c.getOutputStream();
             os.write(params.toString().getBytes("UTF-8"));
@@ -117,16 +128,24 @@ class Response {
 
     HttpURLConnection getConnection() { return connection; }
 
-    Integer getResponseCode() {
+    Boolean hasResponseCode() {
+        Integer code = null;
+        try {
+            code = connection.getResponseCode();
+        } catch (IOException|NullPointerException ex) {}
+        return code != null;
+    }
+
+    int getResponseCode() {
         try {
             return connection.getResponseCode();
-        } catch (IOException ex) {
+        } catch (IOException|NullPointerException ex) {
             Log.e(Constants.TAG, ex.toString());
-            return null;
+            return -1;
         }
     }
 
-    boolean succeeded() { return getResponseCode() != null && (getResponseCode() == 200 || getResponseCode() == 201); }
+    boolean succeeded() { return (getResponseCode() == 200 || getResponseCode() == 201); }
 
     String getBody() { return body; }
 

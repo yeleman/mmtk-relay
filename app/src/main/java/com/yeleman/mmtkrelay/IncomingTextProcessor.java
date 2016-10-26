@@ -89,12 +89,10 @@ public class IncomingTextProcessor extends IntentService {
         // parse date
         Date received_on = fromTimestamp(timestamp);
 
-        // TODO: move DHIS out
+        // TODO: DHIS
         if (DHISUtils.handleIncomingText(context, from, text)) {
-            Log.d(Constants.TAG, "DHIS will handle");
+            Log.d(Constants.TAG, "DHIS-related text");
             return;
-        } else {
-            Log.d(Constants.TAG, "DHIS will NOT handle");
         }
 
         // parse text and prepare data

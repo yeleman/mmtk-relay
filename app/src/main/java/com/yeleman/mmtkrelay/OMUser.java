@@ -63,7 +63,7 @@ class OMUser {
         this.balance = Integer.parseInt(balance);
     }
 
-    public int getBalance() { return this.balance; };
+    public int getBalance() { return this.balance; }
 
     public String getFormattedBalance() {
         return TextUtils.moneyFormat(this.getBalance(), true);

@@ -127,14 +127,17 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/page_switcher_height"
         android:orientation="horizontal"
-        android:layout_marginTop="@dimen/page_switcher_marginTop">
+        android:layout_marginTop="@dimen/page_switcher_marginTop"
+        style="?android:attr/buttonBarStyle">
         <Button
+            style="?android:attr/buttonBarButtonStyle"
             android:onClick="displayDashboard"
             android:clickable="true"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Dashboard" />
         <Button
+            style="?android:attr/buttonBarButtonStyle"
             android:onClick="displayFailedItems"
             android:clickable="true"
             android:layout_width="wrap_content"

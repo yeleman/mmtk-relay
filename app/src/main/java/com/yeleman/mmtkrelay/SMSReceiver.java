@@ -20,7 +20,7 @@ public class SMSReceiver extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         Log.e(Constants.TAG, "onReceive SMS");
         Bundle bundle = intent.getExtras();
-        SmsMessage[] parts = null;
+        SmsMessage[] parts;
         if (bundle != null) {
             // Retrieve the SMS Messages received
             parts = Telephony.Sms.Intents.getMessagesFromIntent(intent);

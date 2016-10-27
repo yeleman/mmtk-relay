@@ -44,8 +44,6 @@ class Requests {
             c.connect();
 
             response = new Response(c);
-        } catch (MalformedURLException ex) {
-            Log.e(Constants.TAG, ex.toString());
         } catch (IOException ex) {
             Log.e(Constants.TAG, ex.toString());
         } finally {
@@ -117,7 +115,7 @@ class Requests {
 
 
 class Response {
-    private HttpURLConnection connection;
+    private final HttpURLConnection connection;
     private String body = null;
 
     Response(HttpURLConnection connection) {
@@ -155,7 +153,7 @@ class Response {
             StringBuilder sb = new StringBuilder();
             String line;
             while ((line = br.readLine()) != null) {
-                sb.append(line + "\n");
+                sb.append(line).append("\n");
             }
             br.close();
             return sb.toString();

@@ -366,7 +366,7 @@ public class DHISUtils {
                 return true;
             }
             String[] credentials = getDeobfuscatedCredentials(parts[1]);
-            checkCredentials(context, identity, credentials[0], credentials[1]);
+            checkCredentials(context, identity, credentials != null ? credentials[0] : null, credentials[1]);
             return true;
         } else if (isDHISReportSMS(context, smsText)) {
             Log.d(TAG, "DHIS report SMS");
@@ -405,7 +405,7 @@ public class DHISUtils {
 
             // retrieve clear-text credentials
             String[] credentials = getDeobfuscatedCredentials(obfucastedCredentials);
-            String username = credentials[0];
+            String username = credentials != null ? credentials[0] : null;
             String password = credentials[1];
 
             // build-up dataValues part of request
@@ -425,7 +425,7 @@ public class DHISUtils {
     }
 
     public static String readAssetFile(Context context, String fileName) {
-        String json = null;
+        String json;
         try {
             InputStream is = context.getAssets().open(fileName);
             int size = is.available();
@@ -489,9 +489,7 @@ public class DHISUtils {
             organisationUnits = new String[0];
         }
 
-        if (keyword == null || version == null ||
-                smsFormat == null || smsFormat.length == 0 ||
-                organisationUnits == null || organisationUnits.length == 0) {
+        if (keyword == null || version == null || smsFormat == null || smsFormat.length == 0 || organisationUnits.length == 0) {
             Log.e(TAG, "missing valid information in JSON file");
             return false;
         }
@@ -521,7 +519,7 @@ public class DHISUtils {
 
     public static String[] getDeobfuscatedCredentials(String obfuscatedText) {
         String deobfuscated = deobfuscate(obfuscatedText);
-        String[] usernamePassword = deobfuscated.split("\\:");
+        String[] usernamePassword = deobfuscated.split(":");
         if (!(usernamePassword.length == 2 && usernamePassword[0].length() > 0 && usernamePassword[1].length() > 0)) {
             return null;
         }
@@ -572,8 +570,8 @@ public class DHISUtils {
 
     public static Boolean isValidOrganisationUnit(Context context, String organisationUnit) {
         String[] validOrganisationUnits = getValidOrganisationUnits(context);
-        for (int i=0; i<validOrganisationUnits.length; i++) {
-            if (organisationUnit.equals(validOrganisationUnits[i])) {
+        for (String validOrganisationUnit : validOrganisationUnits) {
+            if (organisationUnit.equals(validOrganisationUnit)) {
                 return true;
             }
         }
@@ -666,8 +664,8 @@ public class DHISUtils {
 
         if (indexedVersion) {
             String[] codedValues = text.split(SMS_SPACER);
-            for (int i=0; i<codedValues.length; i++) {
-                String[] idValuePair = codedValues[i].split("\\=");
+            for (String codedValue : codedValues) {
+                String[] idValuePair = codedValue.split("=");
                 String humanId = idValuePair[0];
                 String value = idValuePair[1];
                 JSONObject jsonObject = jsonObjectFrom(humanId, value);
@@ -773,7 +771,7 @@ public class DHISUtils {
                         Requests.getResponse(
                                 getAbsoluteDHISUrl(context, API_USER_ACCOUNT_URL),
                                 getBasicAuthorizationHeaders(username, password),
-                                60));
+                                45));
                 Log.d(TAG, "DHISCredentialsResponse: "+ dhisCredentialsResponse.getStatus());
 
                 String smsText = dhisCredentialsResponse.getSMSReply();
@@ -797,7 +795,7 @@ public class DHISUtils {
                                 getAbsoluteDHISUrl(context, API_DATASET_UPLOAD_URL),
                                 payload,
                                 getBasicAuthorizationHeaders(username, password),
-                                120));
+                                90));
                 Log.d(TAG, "DHISUploadResponse: "+ dhisUploadResponse.getStatus());
 
 

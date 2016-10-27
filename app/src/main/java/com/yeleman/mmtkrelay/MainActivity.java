@@ -1,11 +1,15 @@
 package com.yeleman.mmtkrelay;
 
+import android.*;
+import android.Manifest;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.PowerManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -20,7 +24,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Hashtable;
 
 
@@ -60,7 +63,7 @@ public class MainActivity extends AppCompatActivity {
     OperationAdapter adapter;
     ListView lvOperations;
 
-    private BroadcastReceiver NetworkStateChanged = new BroadcastReceiver() {
+    private final BroadcastReceiver NetworkStateChanged = new BroadcastReceiver() {
         private boolean initial_network_state_received = false;
         private boolean isInitialized() {
             return initial_network_state_received;
@@ -77,7 +80,7 @@ public class MainActivity extends AppCompatActivity {
         }
     };
 
-    private BroadcastReceiver UITamperedReceiver = new BroadcastReceiver() {
+    private final BroadcastReceiver UITamperedReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             //Log.d(Constants.TAG, "UITamperedReceiver onReceived");
@@ -127,6 +130,29 @@ public class MainActivity extends AppCompatActivity {
         // TODO: DHIS
         DHISUtils.setup(this);
 
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        // display permission warning
+        if (ContextCompat.checkSelfPermission(this, android.Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.PROCESS_OUTGOING_CALLS) != PackageManager.PERMISSION_GRANTED
+                || ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            Log.d(TAG, "PackageManager.PERMISSION_GRANTED: " + PackageManager.PERMISSION_GRANTED);
+            Log.d(TAG, "SEND_SMS: " + ContextCompat.checkSelfPermission(this, Manifest.permission.SEND_SMS));
+            Log.d(TAG, "RECEIVE_SMS: " + ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS));
+            Log.d(TAG, "READ_PHONE_STATE: " + ContextCompat.checkSelfPermission(this, Manifest.permission.READ_PHONE_STATE));
+            Log.d(TAG, "PROCESS_OUTGOING_CALLS: " + ContextCompat.checkSelfPermission(this, Manifest.permission.PROCESS_OUTGOING_CALLS));
+            Log.d(TAG, "WRITE_EXTERNAL_STORAGE: " + ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE));
+
+
+            Utils.showdisplayPermissionErrorPopup(this,
+                    getString(R.string.permission_required),
+                    getString(R.string.enable_permissions_in_settings_text), true);
+        }
     }
 
     protected void setupUI() {
@@ -189,7 +215,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (refreshBalance) {
             if (!session.getUser().isValid()) {
-                tvBalance.setText("!OMoney");
+                tvBalance.setText(getString(R.string.not_orange_money));
                 tvBalanceUpdatedOn.setText(Constants.BLANK);
             } else {
                 tvBalance.setText(session.getUser().getFormattedBalance());
@@ -203,7 +229,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         if (refreshFailedItems) {
-
+            // display failed items
         }
     }
 
@@ -228,9 +254,10 @@ public class MainActivity extends AppCompatActivity {
         inflater.inflate(R.menu.main_menu, menu);
         return true;
     }
+
     @Override
     public void onBackPressed() {
-        if (this.CURRENT_PAGE == this.ABOUT) {
+        if (this.CURRENT_PAGE.equals(MainActivity.ABOUT)) {
             this.switchToDashboard();
         } else {
             moveTaskToBack(true);
@@ -292,19 +319,19 @@ public class MainActivity extends AppCompatActivity {
         Log.d(Constants.TAG, "hidePage: " + page);
         int page_id = pages.get(page);
         RelativeLayout layout = (RelativeLayout) findViewById(page_id);
-        layout.setVisibility(layout.GONE);
+        layout.setVisibility(RelativeLayout.GONE);
     }
     protected void showPage(String page) {
         Log.d(Constants.TAG, "showPage: " + page);
         int page_id = pages.get(page);
         RelativeLayout layout = (RelativeLayout) findViewById(page_id);
-        layout.setVisibility(layout.VISIBLE);
+        layout.setVisibility(RelativeLayout.VISIBLE);
         CURRENT_PAGE = page;
     }
     protected void changeCurrentPage(String page) {
-        if (page != DASHBOARD) { hidePage(DASHBOARD); }
-        if (page != FAILED_ITEMS) { hidePage(FAILED_ITEMS); }
-        if (page != ABOUT) { hidePage(ABOUT); }
+        if (!page.equals(DASHBOARD)) { hidePage(DASHBOARD); }
+        if (!page.equals(FAILED_ITEMS)) { hidePage(FAILED_ITEMS); }
+        if (!page.equals(ABOUT)) { hidePage(ABOUT); }
         this.showPage(page);
     }
 }

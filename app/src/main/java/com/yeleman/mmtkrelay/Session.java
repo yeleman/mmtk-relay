@@ -7,7 +7,7 @@ import android.util.Log;
 
 class Session {
 
-    private Context context;
+    private final Context context;
 
     // from prefs
     private String server_url = null;
@@ -22,7 +22,7 @@ class Session {
     private Boolean call_forwarding = false;
 
     // OMAPI
-    private String orange_sender = "22373120896"; //"OrangeMoney";
+    private final String orange_sender = "22373120896"; //"OrangeMoney";
     private OMUser user = null;
     private String msisdn = null;
     private String server_id = null;

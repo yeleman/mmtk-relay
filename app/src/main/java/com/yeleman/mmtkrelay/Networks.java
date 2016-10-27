@@ -7,10 +7,6 @@ import android.provider.Settings;
 import android.telephony.TelephonyManager;
 import android.util.Log;
 
-/**
- * Created by reg on 9/21/16.
- */
-
 class Networks {
 
     static final String WIFI = "WiFi";
@@ -62,7 +58,7 @@ class Networks {
     }
 
     static boolean isOnMobile(final Context context) {
-        return Networks.getMainConnexionType(context) == Networks.MOBILE;
+        return Networks.getMainConnexionType(context).equals(Networks.MOBILE);
     }
 
     static boolean isOnOrangeMobile(final Context context) {
@@ -71,9 +67,5 @@ class Networks {
 
     static boolean isConnectedToOrangeMobile(final Context context) {
         return (Networks.isOnOrangeMobile(context) && Networks.isConnected(context));
-    }
-
-    static void checkServerConnexion(final MainActivity activity) {
-
     }
 }

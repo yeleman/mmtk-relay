@@ -121,7 +121,7 @@ public class IncomingCommandProcessor extends IntentService {
 
     private void handleCommand(String jsData, Long timestamp) {
         Log.d(Constants.TAG, "handleCommand");
-        JSONObject data = null;
+        JSONObject data;
         try {
             data = new JSONObject(jsData);
         } catch (JSONException ex) {

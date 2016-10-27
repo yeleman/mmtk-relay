@@ -55,7 +55,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         }
 
         // Populate the data into the template view using the data object
-        viewHolder.tvAction.setText(operation.getLabel());
+        viewHolder.tvAction.setText(operation != null ? operation.getLabel() : null);
         viewHolder.tvAction.setBackgroundColor(Constants.getStatusColor(operation.isSuccessful()));
         viewHolder.tvCreatedOn.setText(operation.getFormattedCreatedOn());
         if (operation.isTransaction() || operation.isBalance()) {
@@ -85,7 +85,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         } else {
             Operation latest = getItem(0);
             Log.d(Constants.TAG, "latest: " + latest);
-            Long latestId = latest.getId();
+            Long latestId = latest != null ? latest.getId() : null;
             if (latestId == null) {
                 return;
             }
@@ -102,7 +102,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
     void updateSingle(Long id) {
         for (int i = 0; i < getCount(); i++) {
             Operation operation = getItem(i);
-            if (operation.getId() == id) {
+            if ((operation != null ? operation.getId() : null) == id) {
                 operation = Operation.getBy(id);
                 notifyDataSetChanged();
                 return;

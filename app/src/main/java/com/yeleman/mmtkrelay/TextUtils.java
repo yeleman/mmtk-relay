@@ -4,6 +4,7 @@ import android.util.Log;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
+import java.util.Locale;
 
 public class TextUtils {
 
@@ -11,17 +12,17 @@ public class TextUtils {
         String[] words = string.split(" ");
         StringBuilder sb = new StringBuilder();
         if (words[0].length() > 0) {
-            sb.append(Character.toUpperCase(words[0].charAt(0)) + words[0].subSequence(1, words[0].length()).toString().toLowerCase());
+            sb.append(Character.toUpperCase(words[0].charAt(0))).append(words[0].subSequence(1, words[0].length()).toString().toLowerCase());
             for (int i = 1; i < words.length; i++) {
                 sb.append(" ");
-                sb.append(Character.toUpperCase(words[i].charAt(0)) + words[i].subSequence(1, words[i].length()).toString().toLowerCase());
+                sb.append(Character.toUpperCase(words[i].charAt(0))).append(words[i].subSequence(1, words[i].length()).toString().toLowerCase());
             }
         }
         return sb.toString();
     }
 
     public static String moneyFormat(float number, boolean addCurrency) {
-        String formatted = String.format("%,.0f", number);
+        String formatted = String.format(Locale.FRANCE, "%,.0f", number);
         if (addCurrency) {
             return String.format("%sF", formatted);
         }

@@ -181,7 +181,7 @@ public class Operation extends SugarRecord {
     Date getDeliveredOn() { return  delivered_on; }
     void setDelivered(Boolean delivered) { this.delivered = delivered; }
     public Boolean getDelivered() { return delivered; }
-    void markDelivered() { markDelivered(new Date()); };
+    void markDelivered() { markDelivered(new Date()); }
     void markDelivered(Date deliveredOn) {
         setDelivered(true);
         setDeliveredOn(deliveredOn);

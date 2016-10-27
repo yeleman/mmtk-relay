@@ -28,13 +28,13 @@ public abstract class PhoneCallReceiver extends BroadcastReceiver {
             String stateStr = intent.getExtras().getString(TelephonyManager.EXTRA_STATE);
             String number = intent.getExtras().getString(TelephonyManager.EXTRA_INCOMING_NUMBER);
             int state = 0;
-            if(stateStr.equals(TelephonyManager.EXTRA_STATE_IDLE)){
+            if(stateStr != null && stateStr.equals(TelephonyManager.EXTRA_STATE_IDLE)){
                 state = TelephonyManager.CALL_STATE_IDLE;
             }
-            else if(stateStr.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)){
+            else if(stateStr != null && stateStr.equals(TelephonyManager.EXTRA_STATE_OFFHOOK)){
                 state = TelephonyManager.CALL_STATE_OFFHOOK;
             }
-            else if(stateStr.equals(TelephonyManager.EXTRA_STATE_RINGING)){
+            else if(stateStr != null && stateStr.equals(TelephonyManager.EXTRA_STATE_RINGING)){
                 state = TelephonyManager.CALL_STATE_RINGING;
             }
 

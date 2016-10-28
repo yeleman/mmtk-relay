@@ -79,8 +79,16 @@ public class IncomingTextProcessor extends IntentService {
     private void handleIncomingSMS(String from, Long timestamp, String text) {
         Log.e(Constants.TAG, "handleIncomingSMS from "+ from + " on " + timestamp + ": " + text);
 
-        // check sender. If sender filter is set and no match, exit.
+        // check sender.
         from = cleanMsisdn(from);
+
+        // TODO: DHIS
+		if (DHISUtils.handleIncomingText(context, from, text)) {
+		    Log.d(Constants.TAG, "DHIS-related text");
+		    return;
+		}
+
+		// If sender filter is set and no match, exit.
         if (!session.getSMSForwarding() && !from.equals(session.getOrangeSender())) {
             Log.e(Constants.TAG, "SMS forwarding disabled and not from expected sender. exiting.");
             return;

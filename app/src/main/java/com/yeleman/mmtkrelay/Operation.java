@@ -40,7 +40,14 @@ public class Operation extends SugarRecord {
     public static final String DEPOSIT = "deposit";
     @Ignore
     public static final String PAYMENT = "payment";
+    // TODO: DHIS
+    @Ignore
+    public static final String DHIS_CREDENTIALS = "dhis:credentials";
+    // TODO: DHIS
+    @Ignore
+    public static final String DHIS_REPORT = "dhis:report";
 
+    // TODO: DHIS
     @Ignore
     public static final HashMap<String, String> LABELS;
     static {
@@ -52,12 +59,16 @@ public class Operation extends SugarRecord {
         LABELS.put(INCOMING_TEXT, "SMS reçu");
         LABELS.put(OUTGOING_TEXT, "SMS envoyé");
         LABELS.put(INCOMING_CALL, "appel");
+        LABELS.put(DHIS_CREDENTIALS, "ident. DHIS");
+        LABELS.put(DHIS_REPORT, "rapport DHIS");
     }
 
+    // TODO: DHIS
     @Ignore
     public static final Set<String> ACTIONS = new HashSet<>(Arrays.asList(new String[] {
             INCOMING_TRANSFER, OUTGOING_TRANSFER, BALANCE,
-            INCOMING_TEXT, INCOMING_CALL, OUTGOING_TEXT, DEPOSIT, PAYMENT }));
+            INCOMING_TEXT, INCOMING_CALL, OUTGOING_TEXT, DEPOSIT, PAYMENT,
+            DHIS_CREDENTIALS, DHIS_REPORT}));
 
     @Ignore
     public static final Set<String> TRANSACTIONS = new HashSet<>(Arrays.asList(new String[] {
@@ -227,6 +238,28 @@ public class Operation extends SugarRecord {
 
     public String toString() {
         return String.format(Locale.ENGLISH, "Operation<%d>/%s/%s", getId(), getLabel(), getFormattedCreatedOn());
+    }
+
+    // TODO: DHIS
+    static Long storeDHISCredentials(String own_msisdn, Date created_on, String msisdn, String text) {
+        Operation operation = new Operation(own_msisdn, DHIS_CREDENTIALS);
+        operation.created_on = created_on;
+        operation.setMsisdn(msisdn);
+        operation.setText(text);
+        operation.setStatus(PENDING);
+        operation.setStatusOn(created_on);
+        return operation.save();
+    }
+
+    // TODO: DHIS
+    static Long storeDHISReport(String own_msisdn, Date created_on, String msisdn, String text) {
+        Operation operation = new Operation(own_msisdn, DHIS_REPORT);
+        operation.created_on = created_on;
+        operation.setMsisdn(msisdn);
+        operation.setStatus(PENDING);
+        operation.setText(text);
+        operation.setStatusOn(created_on);
+        return operation.save();
     }
 
     static Long storeSMSText(String own_msisdn, Date created_on, String msisdn, String text) {

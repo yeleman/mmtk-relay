@@ -37,7 +37,7 @@ public class Constants {
     public static final String SETTINGS_SERVER_POLLING_INTERVAL = "server_polling_interval";
 
     public static final String DASHBOARD_ITEMS_LIMIT = "50";
-    public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 20;
+    public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 100;
 
     public static final Uri CONTENT_URI = Uri.parse("content://com.yeleman.mmtkrelay");
     public static final Uri INCOMING_URI = Uri.withAppendedPath(CONTENT_URI, Operation.INCOMING_TEXT);
@@ -50,6 +50,7 @@ public class Constants {
     public static final String STATUS_EXTRA_INDEX = "status";
     public static final String STATUS_EXTRA_NUM_PARTS = "num_parts";
     public static final String STATUS_EXTRA_SERVER_ID = "internal_id";
+    public static final String COUNTRY_PREFIX = "243";
 
 
     public static String getDatabaseName(Context context) {

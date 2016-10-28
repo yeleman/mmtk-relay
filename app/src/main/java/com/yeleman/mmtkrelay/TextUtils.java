@@ -34,10 +34,18 @@ public class TextUtils {
             if (msisdn.matches("^[a-zA-Z]+$")) {
                 return msisdn;
             }
-            String formatted = msisdn.replaceFirst("223", "");
-            return String.format("%s %s %s %s",
-                    formatted.subSequence(0, 2), formatted.subSequence(2, 4),
-                    formatted.subSequence(4, 6), formatted.subSequence(6, 8));
+            String formatted = msisdn.replaceFirst(Constants.COUNTRY_PREFIX, "");
+            if (formatted.length() == 8) {
+                return String.format("%s %s %s %s",
+                        formatted.subSequence(0, 2), formatted.subSequence(2, 4),
+                        formatted.subSequence(4, 6), formatted.subSequence(6, 8));
+            } else if (formatted.length() == 9) {
+                return String.format("%s %s %s",
+                        formatted.subSequence(0, 3), formatted.subSequence(3, 6),
+                        formatted.subSequence(6, 9));
+            } else {
+                return formatted;
+            }
         } catch (Exception ex) {}
         return msisdn;
     }

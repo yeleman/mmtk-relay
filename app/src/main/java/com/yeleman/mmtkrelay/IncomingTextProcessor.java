@@ -82,8 +82,11 @@ public class IncomingTextProcessor extends IntentService {
         // check sender.
         from = cleanMsisdn(from);
 
+        // parse date
+        Date received_on = fromTimestamp(timestamp);
+
         // TODO: DHIS
-		if (DHISUtils.handleIncomingText(context, from, text)) {
+		if (DHISUtils.handleIncomingText(context, from, received_on, text)) {
 		    Log.d(Constants.TAG, "DHIS-related text");
 		    return;
 		}
@@ -93,9 +96,6 @@ public class IncomingTextProcessor extends IntentService {
             Log.e(Constants.TAG, "SMS forwarding disabled and not from expected sender. exiting.");
             return;
         }
-
-        // parse date
-        Date received_on = fromTimestamp(timestamp);
 
         // parse text and prepare data
         if (!from.equals(session.getOrangeSender())) {

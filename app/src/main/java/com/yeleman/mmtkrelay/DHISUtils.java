@@ -2,6 +2,7 @@ package com.yeleman.mmtkrelay;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.graphics.Path;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Base64;
@@ -28,6 +29,7 @@ class DHISResponse {
     static final String LABEL_SEPARATOR = "=";
 
     final static String STATUS_SUCCESS = "success";
+    final static String STATUS_ERROR = "error";
     final static String STATUS_NETWORK_FAILURE = "network_failure";
     final static String STATUS_SERVER_ERROR = "server_error";
     final static String STATUS_AUTH_ERROR = "auth_error";
@@ -46,16 +48,33 @@ class DHISResponse {
     void setContext(Context context) { this.context = context; }
     String getStatus() { return this.status; }
     void setStatus(String status) { this.status = status; }
+    Boolean isSuccessful() { return getStatus().equals(STATUS_SUCCESS); }
 
-    String getSMSReply() {
+    String getSMSReplyPrefix() {
+        return getSMSReplyPrefixFor(getStatus());
+    }
+    static String getSMSReplyPrefixFor(String status) {
         return String.format(
-                "[%s%s%s] %s",
+                "[%s%s%s] ",
                 DHISUtils.SMS_LABEL,
                 LABEL_SEPARATOR,
-                getPrefix(),
-                getMessage());
+                getPrefixFor(status));
     }
-    String getPrefix() { return null; }
+
+    String getSMSReply() {
+        return getSMSReplyPrefix() + getMessage();
+    }
+    String getPrefix() {
+        return getPrefixFor(getStatus());
+    }
+    static String getPrefixFor(String status) {
+        switch (status) {
+            case STATUS_SUCCESS:
+                return DHISUtils.PREFIX_SUCCESS;
+            default:
+                return DHISUtils.PREFIX_ERROR;
+        }
+    }
     String getMessage() { return null; }
     int getMessageMaxLength() { return DHISUtils.MAX_SMS_CHARS - getPrefix().length(); }
 }
@@ -107,8 +126,8 @@ class DHISCredentialsResponse extends DHISResponse {
         return message;
     }
 
-    String getPrefix() {
-        switch (getStatus()) {
+    static String getPrefixFor(String status) {
+        switch (status) {
             case STATUS_SUCCESS:
                 return DHISUtils.PREFIX_SUCCESS;
             default:
@@ -235,8 +254,8 @@ class DHISUploadResponse extends DHISResponse {
         return message;
     }
 
-    String getPrefix() {
-        switch (getStatus()) {
+    static String getPrefixFor(String status) {
+        switch (status) {
             case STATUS_SUCCESS:
                 return DHISUtils.PREFIX_SUCCESS;
             default:
@@ -357,66 +376,100 @@ public class DHISUtils {
     static final String[] PLAIN_CHARACTERS = "abcdefghijklmnopqrstuvwxyz:1234567890_-".split("");
     static final String[] TRANSLATED_CHARACTERS = "f12_8sy3bco47gnadxmqtij6:wz-09phe5krlvu".split("");
 
-    public static Boolean handleIncomingText(final Context context, String identity, String smsText) {
+    public static void handleIncomingCredentials(final Context context, String identity, Date received_on, String smsText) {
+        Log.d(TAG, "credentials check SMS: "+ smsText);
+
+        // create operation
+        Long operationId = Operation.storeDHISCredentials(null, received_on, identity, smsText);
+
+        String[] parts = smsText.split(SMS_SPACER, 2);
+        if (parts.length != 2) {
+            Log.e(TAG, "invalid SMS format for credentials: "+ parts.length);
+            Operation operation = Operation.getBy(operationId);
+            operation.setStatus(Operation.FAILURE);
+            operation.setReason("Invalid SMS format for credentials request");
+            operation.save();
+            return;
+        }
+        String[] credentials = getDeobfuscatedCredentials(parts[1]);
+        checkCredentials(context, identity, credentials != null ? credentials[0] : null, credentials != null ? credentials[1] : null, operationId);
+    }
+
+    public static void handleIncomingUpload(final Context context, String identity, Date received_on, String smsText) {
+        Log.d(TAG, "DHIS report SMS");
+
+        // create operation
+        Long operationId = Operation.storeDHISReport(null, received_on, identity, smsText);
+        Operation operation = Operation.getBy(operationId);
+
+        // whether an indexed values report SMS or regular
+        Boolean isIndexed = smsText.startsWith("i:");
+
+        // split metadata and body
+        String[] parts = smsText.split("#", 2);
+        if (parts.length != 2) {
+            Log.e(TAG, "invalid SMS format for report: "+ parts.length);
+            operation.setStatus(Operation.FAILURE);
+            operation.setReason("Invalid SMS format for report");
+            operation.save();
+            return;
+        }
+
+        // extra individual metadata
+        String[] metadataParts = parts[0].split(SMS_SPACER, 5);
+        if (metadataParts.length != 5) {
+            Log.e(TAG, "invalid SMS format for report (metadata): "+ metadataParts.length);
+            operation.setStatus(Operation.FAILURE);
+            operation.setReason("Invalid SMS format for report (metadata)");
+            operation.save();
+            return;
+        }
+
+        SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
+
+        int version = -1;
+        try { version = Integer.valueOf(metadataParts[1]); } catch (Exception ex) {}
+        String obfucastedCredentials = metadataParts[2];
+        String period = String.format("20%s", metadataParts[3]);
+        String organisationUnit = metadataParts[4];
+
+        if (version != sharedPreferences.getInt(KEY_DHIS_VERSION, -1)) {
+            Log.e(TAG, "SMS format version differs from relay");
+            String prefix = DHISResponse.getSMSReplyPrefixFor(DHISResponse.STATUS_ERROR);
+            OutgoingSMSService.startSingleSMS(context, identity, prefix + "Version du formulaire (%$1s) non prise en charge par le relai.");
+            operation.setStatus(Operation.FAILURE);
+            operation.setReason(String.format(
+                    "SMS format version differs from relay (received %1$s instead of %2$s)",
+                    version, sharedPreferences.getInt(KEY_DHIS_VERSION, -1)));
+            operation.save();
+            return;
+        }
+
+        // retrieve clear-text credentials
+        String[] credentials = getDeobfuscatedCredentials(obfucastedCredentials);
+        String username = credentials != null ? credentials[0] : null;
+        String password = credentials[1];
+
+        // build-up dataValues part of request
+        JSONObject payload = buildDHISJSONPayload(context, period, organisationUnit, parts[1], isIndexed);
+        if (payload == null) {
+            Log.e(TAG, "no data to upload to DHIS");
+            String prefix = DHISResponse.getSMSReplyPrefixFor(DHISResponse.STATUS_ERROR);
+            OutgoingSMSService.startSingleSMS(context, identity, prefix + "Aucune donnée à transmettre au DHIS.");
+            operation.setStatus(Operation.FAILURE);
+            operation.setReason("No data to transfer to DHIS server (null payload)");
+            operation.save();
+            return;
+        }
+        uploadReport(context, identity, username, password, payload, operationId);
+    }
+
+    public static Boolean handleIncomingText(final Context context, String identity, Date received_on, String smsText) {
         if (isDHISCredentialsCheckSMS(context, smsText)) {
-            Log.d(TAG, "credentials check SMS: "+ smsText);
-            String[] parts = smsText.split(SMS_SPACER, 2);
-            if (parts.length != 2) {
-                Log.e(TAG, "invalid SMS format for credentials: "+ parts.length);
-                return true;
-            }
-            String[] credentials = getDeobfuscatedCredentials(parts[1]);
-            checkCredentials(context, identity, credentials != null ? credentials[0] : null, credentials[1]);
+            handleIncomingCredentials(context, identity, received_on, smsText);
             return true;
         } else if (isDHISReportSMS(context, smsText)) {
-            Log.d(TAG, "DHIS report SMS");
-
-            // whether an indexed values report SMS or regular
-            Boolean isIndexed = smsText.startsWith("i:");
-
-            // split metadata and body
-            String[] parts = smsText.split("#", 2);
-            if (parts.length != 2) {
-                Log.e(TAG, "invalid SMS format for report: "+ parts.length);
-                return true;
-            }
-
-            // extra individual metadata
-            String[] metadataParts = parts[0].split(SMS_SPACER, 5);
-            if (metadataParts.length != 5) {
-                Log.e(TAG, "invalid SMS format for report (metadata): "+ metadataParts.length);
-                return true;
-            }
-
-            SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(context);
-
-            int version = -1;
-            try { version = Integer.valueOf(metadataParts[1]); } catch (Exception ex) {}
-            String obfucastedCredentials = metadataParts[2];
-            String period = String.format("20%s", metadataParts[3]);
-            String organisationUnit = metadataParts[4];
-
-            if (version != sharedPreferences.getInt(KEY_DHIS_VERSION, -1)) {
-                // TODO: reply different SMS version
-                Log.e(TAG, "SMS format version differs from relay");
-                // OutgoingSMSService.startSingleSMS(context, identity, "");
-                return true;
-            }
-
-            // retrieve clear-text credentials
-            String[] credentials = getDeobfuscatedCredentials(obfucastedCredentials);
-            String username = credentials != null ? credentials[0] : null;
-            String password = credentials[1];
-
-            // build-up dataValues part of request
-            JSONObject payload = buildDHISJSONPayload(context, period, organisationUnit, parts[1], isIndexed);
-            if (payload == null) {
-                Log.e(TAG, "no data to upload to DHIS");
-                // TODO: reply
-                return true;
-            }
-            uploadReport(context, identity, username, password, payload);
-
+            handleIncomingUpload(context, identity, received_on, smsText);
             return true;
         } else {
             Log.d(TAG, "unknown type SMS");
@@ -762,7 +815,8 @@ public class DHISUtils {
         return headers;
     }
 
-    public static void checkCredentials(final Context context, final String identity, final String username, final String password) {
+    public static void checkCredentials(final Context context, final String identity,
+                                        final String username, final String password, final Long operationId) {
         Runnable task = new Runnable() {
             @Override
             public void run() {
@@ -774,6 +828,12 @@ public class DHISUtils {
                                 45));
                 Log.d(TAG, "DHISCredentialsResponse: "+ dhisCredentialsResponse.getStatus());
 
+                // record operation
+                Operation operation = Operation.getBy(operationId);
+                operation.setStatus(dhisCredentialsResponse.isSuccessful() ? Operation.SUCCESS : Operation.FAILURE);
+                operation.setReason(dhisCredentialsResponse.getMessage());
+                operation.save();
+
                 String smsText = dhisCredentialsResponse.getSMSReply();
 
                 Log.e(TAG, "SMS to " + identity + ": " + smsText);
@@ -783,7 +843,9 @@ public class DHISUtils {
         new Thread(task).start();
     }
 
-    public static void uploadReport(final Context context, final String identity, final String username, final String password, final JSONObject payload) {
+    public static void uploadReport(final Context context, final String identity,
+                                    final String username, final String password,
+                                    final JSONObject payload, final Long operationId) {
         Runnable task = new Runnable() {
             @Override
             public void run() {
@@ -798,6 +860,11 @@ public class DHISUtils {
                                 90));
                 Log.d(TAG, "DHISUploadResponse: "+ dhisUploadResponse.getStatus());
 
+                // record operation
+                Operation operation = Operation.getBy(operationId);
+                operation.setStatus(dhisUploadResponse.isSuccessful() ? Operation.SUCCESS : Operation.FAILURE);
+                operation.setReason(dhisUploadResponse.getMessage());
+                operation.save();
 
                 String smsText = dhisUploadResponse.getSMSReply();
                 Log.e(TAG, "SMS to " + identity + ": " + smsText);

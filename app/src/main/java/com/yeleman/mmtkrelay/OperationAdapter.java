@@ -61,7 +61,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         if (operation.isTransaction() || operation.isBalance()) {
             viewHolder.tvAmountOrText.setText(operation.getFormattedAmountAndFees());
         } else {
-            viewHolder.tvAmountOrText.setText(operation.getStrippedText());
+            viewHolder.tvAmountOrText.setText(operation.getText());
         }
         viewHolder.tvMsisdn.setText(operation.getFormattedMsisdn());
         viewHolder.tvTransactionId.setText(operation.getStrippedTransactionId());

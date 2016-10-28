@@ -200,9 +200,6 @@ public class MainActivity extends AppCompatActivity {
                             Boolean refreshDashboard, Boolean refreshFailedItems,
                             Boolean refreshNetworkStatus, Boolean refreshServerStatus,
                             Boolean refreshDHIS) {
-//        Log.e(Constants.TAG, "redrawUI refreshMsisdn:"+refreshMsisdn+ " refreshUser:"+refreshUser+
-//                " refreshBalance:"+refreshBalance+" refreshDashboard:"+refreshDashboard+" refreshFailedItems:"+refreshFailedItems+
-//                " refreshNetworkStatus:"+refreshNetworkStatus+" refreshServerStatus:"+refreshServerStatus);
 
         if (refreshNetworkStatus) {
             tvNetworkStatus.setTextColor(Constants.getConnectionColor(session.getOrangeConnected()));

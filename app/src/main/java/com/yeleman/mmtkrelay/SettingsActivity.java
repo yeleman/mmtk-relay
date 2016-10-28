@@ -28,12 +28,20 @@ public class SettingsActivity extends Activity implements SharedPreferences.OnSh
         Log.d(Constants.TAG, "onSharedPreferenceChanged: " + key);
         if (key.equals(Constants.SETTINGS_SERVER_URL)) {
             // send a broadcast
-            Intent intent = new Intent(Constants.SETTINGS_CHANGED_FILTER);
-            intent.putExtra("key", key);
-            sendBroadcast(intent);
-            LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
+            // Intent intent = new Intent(Constants.SETTINGS_CHANGED_FILTER);
+            // intent.putExtra("key", key);
+            // sendBroadcast(intent);
+            // LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         }
         if (key.equals(DHISUtils.KEY_DHIS_SERVER_URL)) {
+            // if preference was blanked ; set it to null so it really matches default
+            SharedPreferences sharedPref = PreferenceManager.getDefaultSharedPreferences(this);
+            if (sharedPref.getString(key, "-").length() == 0) {
+                SharedPreferences.Editor prefEditor = sharedPref.edit();
+                prefEditor.putString(key, null);
+                prefEditor.apply();
+            }
+            // refresh UI to user is aware of target server
             Utils.triggerUIRefresh(this, "refreshDhis");
         }
     }

@@ -18,6 +18,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -49,6 +50,7 @@ public class MainActivity extends AppCompatActivity {
 
     private Toolbar toolbar;
     // main header
+    private TextView tvDhisServer;
     private TextView tvBalance;
     private TextView tvBalanceUpdatedOn;
     private TextView tvMsisdn;
@@ -91,13 +93,14 @@ public class MainActivity extends AppCompatActivity {
             Boolean refreshFailedItems = intent.getBooleanExtra("refreshFailedItems", false);
             Boolean refreshServerStatus = intent.getBooleanExtra("refreshServerStatus", false);
             Boolean refreshNetworkStatus = intent.getBooleanExtra("refreshNetworkStatus", false);
+            Boolean refreshDhis = intent.getBooleanExtra("refreshDhis", false);
             if (refreshMsisdn || refreshUser || refreshNetworkStatus || refreshServerStatus) {
                 //Log.w(Constants.TAG, "brui refreshing session ");
                 session.reloadPreferences();
             }
             //Log.w(Constants.TAG, "br ui tamp: " + session.getServerConnected());
             redrawUI(refreshMsisdn, refreshUser, refreshBalance, refreshDashboard, refreshFailedItems,
-                     refreshNetworkStatus, refreshServerStatus);
+                     refreshNetworkStatus, refreshServerStatus, refreshDhis);
         }
     };
 
@@ -157,6 +160,23 @@ public class MainActivity extends AppCompatActivity {
     protected void setupUI() {
         setContentView(R.layout.activity_dashboard);
 
+        if (Constants.HAS_DHIS) {
+            // hide regular widgets
+            LinearLayout headerLayout = (LinearLayout) findViewById(R.id.ll_header);
+            LinearLayout serverLineLayout = (LinearLayout) findViewById(R.id.ll_serverLine);
+            headerLayout.setVisibility(View.GONE);
+            serverLineLayout.setVisibility(View.GONE);
+
+            // display DHIS replacement ones
+            LinearLayout dhisHeaderLayout = (LinearLayout) findViewById(R.id.ll_dhisHeader);
+            LinearLayout dhisServerLineLayout = (LinearLayout) findViewById(R.id.ll_dhisServerLine);
+            dhisHeaderLayout.setVisibility(View.VISIBLE);
+            dhisServerLineLayout.setVisibility(View.VISIBLE);
+        }
+
+        tvDhisServer = (TextView) findViewById(R.id.tvDhisServer);
+        tvDhisServer.setText(DHISUtils.getAbsoluteDHISUrl(this, ""));
+
         // load references to moving elements
         tvBalance = (TextView) findViewById(R.id.tvBalance);
         tvBalanceUpdatedOn = (TextView) findViewById(R.id.tvBalanceUpdatedOn);
@@ -178,7 +198,8 @@ public class MainActivity extends AppCompatActivity {
 
     protected void redrawUI(Boolean refreshMsisdn, Boolean refreshUser, Boolean refreshBalance,
                             Boolean refreshDashboard, Boolean refreshFailedItems,
-                            Boolean refreshNetworkStatus, Boolean refreshServerStatus) {
+                            Boolean refreshNetworkStatus, Boolean refreshServerStatus,
+                            Boolean refreshDHIS) {
 //        Log.e(Constants.TAG, "redrawUI refreshMsisdn:"+refreshMsisdn+ " refreshUser:"+refreshUser+
 //                " refreshBalance:"+refreshBalance+" refreshDashboard:"+refreshDashboard+" refreshFailedItems:"+refreshFailedItems+
 //                " refreshNetworkStatus:"+refreshNetworkStatus+" refreshServerStatus:"+refreshServerStatus);
@@ -220,6 +241,11 @@ public class MainActivity extends AppCompatActivity {
                 tvBalance.setText(session.getUser().getFormattedBalance());
                 tvBalanceUpdatedOn.setText(session.getUser().getFormattedUpdatedOn());
             }
+        }
+
+        if (refreshDHIS) {
+            Log.e(Constants.TAG, "refresh DHIS" + DHISUtils.getAbsoluteDHISUrl(this, ""));
+            tvDhisServer.setText(DHISUtils.getAbsoluteDHISUrl(this, ""));
         }
 
         if (refreshDashboard) {

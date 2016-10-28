@@ -23,6 +23,7 @@
     </android.support.design.widget.AppBarLayout>
 
     <LinearLayout
+        android:id="@+id/ll_header"
         android:orientation="horizontal"
         android:layout_width="match_parent"
         android:layout_height="@dimen/header_height"
@@ -99,6 +100,7 @@
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/ll_serverLine"
         android:layout_width="match_parent"
         android:layout_height="@dimen/servers_status_height"
         android:orientation="horizontal"
@@ -124,6 +126,43 @@
         </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/ll_dhisHeader"
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/header_height"
+        android:background="@android:color/black"
+        android:layout_marginTop="@dimen/toolbar_height"
+        android:visibility="gone">
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:text="DHIS Relay"
+            android:textColor="@android:color/white"
+            android:textSize="60sp"
+            android:textStyle="normal|bold"
+            android:textAlignment="center"
+            android:layout_centerVertical="true"
+            />
+        </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_dhisServerLine"
+        android:layout_width="match_parent"
+        android:layout_height="@dimen/servers_status_height"
+        android:orientation="horizontal"
+        android:layout_marginTop="@dimen/servers_status_marginTop"
+        android:visibility="gone">
+        <TextView
+            android:id="@+id/tvDhisServer"
+            android:layout_width="match_parent"
+            android:layout_height="@dimen/servers_status_height"
+            android:textSize="20sp"
+            android:gravity="center"
+            android:text="Unknown DHIS Server address" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/ll_tabBar"
         android:layout_width="match_parent"
         android:layout_height="@dimen/page_switcher_height"
         android:orientation="horizontal"

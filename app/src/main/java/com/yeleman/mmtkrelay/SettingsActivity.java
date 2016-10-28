@@ -33,6 +33,9 @@ public class SettingsActivity extends Activity implements SharedPreferences.OnSh
             sendBroadcast(intent);
             LocalBroadcastManager.getInstance(this).sendBroadcast(intent);
         }
+        if (key.equals(DHISUtils.KEY_DHIS_SERVER_URL)) {
+            Utils.triggerUIRefresh(this, "refreshDhis");
+        }
     }
 
     @Override

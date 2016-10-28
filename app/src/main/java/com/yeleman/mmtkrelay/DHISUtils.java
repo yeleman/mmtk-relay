@@ -312,7 +312,7 @@ public class DHISUtils {
     public static final String TAG = "LOG-MMTK-DHISUtils";
     public static final String REPORT_JSON_FILE = "palu-v1.json";
 
-    static final String DEFAULT_DHIS_SERVER_URL = "http://192.168.5.166:8080";
+    static final String DEFAULT_DHIS_SERVER_URL = "https://www.snisrdc.com";
     public static final String API_DATASET_UPLOAD_URL = "/api/dataValueSets";
     public static final String API_USER_ACCOUNT_URL = "/api/me";
 

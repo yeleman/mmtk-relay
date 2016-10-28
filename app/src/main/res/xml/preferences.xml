@@ -70,6 +70,16 @@
             android:key="call_forwarding" />
         </PreferenceCategory>
 
+    <PreferenceCategory android:title="DHIS">
+        <EditTextPreference
+            android:defaultValue="https://www.snisrdc.com"
+            android:selectAllOnFocus="true"
+            android:singleLine="true"
+            android:title="DHIS Server URL"
+            android:key="dhis:serverUrl"
+            android:inputType="textUri" />
+    </PreferenceCategory>
+
 
 
 </PreferenceScreen>

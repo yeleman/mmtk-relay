@@ -126,10 +126,6 @@ public class MainActivity extends AppCompatActivity {
 
         // display dashboard
         switchToDashboard();
-
-        // TODO: DHIS
-        DHISUtils.setup(this);
-
     }
 
     @Override

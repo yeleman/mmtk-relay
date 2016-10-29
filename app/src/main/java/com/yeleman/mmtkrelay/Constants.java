@@ -38,6 +38,7 @@ public class Constants {
 
     public static final String DASHBOARD_ITEMS_LIMIT = "50";
     public static final int DASHBOARD_TEXT_PREVIEW_LIMIT = 100;
+    public static final String FAILED_ITEMS_LIMIT = "200";
 
     public static final Uri CONTENT_URI = Uri.parse("content://com.yeleman.mmtkrelay");
     public static final Uri INCOMING_URI = Uri.withAppendedPath(CONTENT_URI, Operation.INCOMING_TEXT);

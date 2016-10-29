@@ -134,7 +134,6 @@
             android:name=".OutgoingSMSDeliveryReceiver"
             android:enabled="true"
             android:exported="false">
-            <uses-permission android:name="android.permission.RECEIVE_SMS" />
             <intent-filter>
                 <action android:name="com.yeleman.mmtkrelay.MESSAGE_DELIVERY" />
                 <data android:scheme="content" />

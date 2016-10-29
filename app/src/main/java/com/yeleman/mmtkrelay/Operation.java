@@ -7,6 +7,7 @@ import android.util.Log;
 import com.orm.SugarRecord;
 import com.orm.dsl.Ignore;
 import com.orm.dsl.Table;
+import com.orm.query.Condition;
 import com.orm.query.Select;
 
 import java.util.ArrayList;
@@ -365,11 +366,19 @@ public class Operation extends SugarRecord {
         return Select.from(Operation.class).orderBy("CREATEDON Desc").limit(Constants.DASHBOARD_ITEMS_LIMIT).list();
     }
 
+    static List<Operation> getLatestsFailed()
+    {
+        return Select.from(Operation.class).where(Condition.prop("STATUS").eq(FAILURE)).orderBy("CREATEDON Desc").limit(Constants.FAILED_ITEMS_LIMIT).list();
+    }
+
     static List<Operation> getNewestSince(Long since)
     {
-        String[] params = new String[1];
-        params[0] = String.valueOf(since);
-        return Select.from(Operation.class).where("ID > ?", params).orderBy("CREATEDON Desc").list();
+        return Select.from(Operation.class).where(Condition.prop("ID").gt(String.valueOf(since))).orderBy("CREATEDON Desc").list();
+    }
+
+    static List<Operation> getNewestFailedSince(Long since)
+    {
+        return Select.from(Operation.class).where(Condition.prop("STATUS").eq(FAILURE)).and(Condition.prop("ID").gt(String.valueOf(since))).orderBy("CREATEDON Desc").list();
     }
 
     static Operation getLatestTransaction()

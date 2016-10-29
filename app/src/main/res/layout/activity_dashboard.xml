@@ -210,21 +210,18 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/content_failed_items"
         android:layout_width="match_parent"
-        android:layout_height="645dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="@dimen/content_marginTop"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
         android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context="com.yeleman.mmtkrelay.MainActivity"
         tools:showIn="@layout/activity_dashboard">
 
-        <TextView
+        <ListView
+            android:id="@+id/lvFailedOperations"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="Failed Items"/>
+            android:layout_height="match_parent">
+
+        </ListView>
 
     </RelativeLayout>
 
@@ -233,21 +230,22 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:id="@+id/content_about"
         android:layout_width="match_parent"
-        android:layout_height="645dp"
+        android:layout_height="match_parent"
         android:layout_marginTop="@dimen/content_marginTop"
-        android:paddingBottom="@dimen/activity_vertical_margin"
-        android:paddingLeft="@dimen/activity_horizontal_margin"
-        android:paddingRight="@dimen/activity_horizontal_margin"
-        android:paddingTop="@dimen/activity_vertical_margin"
         android:visibility="gone"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior"
         tools:context="com.yeleman.mmtkrelay.MainActivity"
         tools:showIn="@layout/activity_dashboard">
 
-        <TextView
+        <ScrollView
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:text="About"/>
+            android:layout_height="match_parent">
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginLeft="10dp"
+                android:layout_marginRight="10dp"
+                android:text="@string/about_content"/>
+        </ScrollView>
 
     </RelativeLayout>
 

@@ -62,8 +62,11 @@ public class MainActivity extends AppCompatActivity {
 
     // dashboard
     private ArrayList<Operation> operationsArrayList;
+    private ArrayList<Operation> failedOperationsArrayList;
     OperationAdapter adapter;
+    OperationAdapter failedAdapter;
     ListView lvOperations;
+    ListView lvFailedOperations;
 
     private final BroadcastReceiver NetworkStateChanged = new BroadcastReceiver() {
         private boolean initial_network_state_received = false;
@@ -188,9 +191,15 @@ public class MainActivity extends AppCompatActivity {
 
         // Dashboard
         operationsArrayList = (ArrayList<Operation>) Operation.getLatests();
-        adapter = new OperationAdapter(this, operationsArrayList);
+        adapter = new OperationAdapter(this, operationsArrayList, OperationAdapter.DASHBOARD);
         lvOperations = (ListView) findViewById(R.id.lvOperations);
         lvOperations.setAdapter(adapter);
+
+        // Failed Items
+        failedOperationsArrayList = (ArrayList<Operation>) Operation.getLatestsFailed();
+        failedAdapter = new OperationAdapter(this, failedOperationsArrayList, OperationAdapter.FAILED_ITEMS);
+        lvFailedOperations = (ListView) findViewById(R.id.lvFailedOperations);
+        lvFailedOperations.setAdapter(failedAdapter);
 
         toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -252,6 +261,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (refreshFailedItems) {
             // display failed items
+            adapter.reset();
         }
     }
 
@@ -351,6 +361,7 @@ public class MainActivity extends AppCompatActivity {
         CURRENT_PAGE = page;
     }
     protected void changeCurrentPage(String page) {
+
         if (!page.equals(DASHBOARD)) { hidePage(DASHBOARD); }
         if (!page.equals(FAILED_ITEMS)) { hidePage(FAILED_ITEMS); }
         if (!page.equals(ABOUT)) { hidePage(ABOUT); }

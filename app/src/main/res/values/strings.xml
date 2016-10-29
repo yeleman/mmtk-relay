@@ -32,4 +32,8 @@
     <string name="standard_dialog_ok">OK</string>
     <string name="permission_required">Permission manquante !</string>
     <string name="enable_permissions_in_settings_text">L\'application nécessite les permissions SMS et Téléphone pour fonctionner.\n\nVous devez aller les activer dans les paramètres sans quoi l\'application sera inutilisable.</string>
+
+
+    <string name="about_content">This application serves as an SMS Relay between SNIS-SMS App clients and a DHIS Server.\n\nIt allows those clients to submit DHIS reports over SMS using a specified format, transforms those data into actual DHIS WebAPI requests and returns the result back to the client over SMS.\n\nIn order to work, this application requires its phone to be powered-on and connected to the Internet at all time.\nConnexion could be through mobile data or WiFi. Should the target DHIS Server be accessible locally, the app doesn\'t need to access Internet ou could just connect to it via WiFi.\n\nDashboard displays a preview of the latests events handled by the Relay while Failed Items displays only those with a FAILURE status.\n\nThis phone needs to permanently have operator units in order to receive and mostly submit replies back to the users.\n\nAfter initial configuration (indicating the target DHIS server in the Settings), the App doesn\'t need to be launched to function. It is a good idea though to look at it periodicaly to ensure there\'s no issue.\n\n
+    Common issues include:\n• Relay not sending replies (SIM card out of units)\n• All requests failing (Relay can\'t access DHIS server due to misconfiguration or network issue).\n\nContact developer should those tips didn\'t help solve the issue.</string>
 </resources>

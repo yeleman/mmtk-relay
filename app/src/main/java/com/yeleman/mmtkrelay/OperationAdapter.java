@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.List;
 
 import android.content.Context;
+import android.graphics.Path;
 import android.support.annotation.NonNull;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -17,6 +18,11 @@ import org.w3c.dom.Text;
 
 class OperationAdapter extends ArrayAdapter<Operation> {
 
+    public static final int DASHBOARD = 0;
+    public static final int FAILED_ITEMS = 0;
+
+    private int dataset;
+    private boolean isFailedItems() { return this.dataset == FAILED_ITEMS; }
     private static class ViewHolder {
         TextView tvAction;
         TextView tvCreatedOn;
@@ -25,8 +31,9 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         TextView tvTransactionId;
     }
 
-    OperationAdapter(Context context, ArrayList<Operation> users) {
+    OperationAdapter(Context context, ArrayList<Operation> users, int dataset) {
         super(context, R.layout.item_operation, users);
+        this.dataset = dataset;
         setNotifyOnChange(true);
     }
 
@@ -70,7 +77,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
     }
 
     void reset() {
-        clear();
+//        clear();
         update();
         notifyDataSetChanged();
     }
@@ -81,7 +88,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
         // at very first, list is empty
         List<Operation> operations;
         if (getCount() == 0) {
-            operations = Operation.getLatests();
+            operations = isFailedItems() ? Operation.getLatestsFailed() : Operation.getLatests();
         } else {
             Operation latest = getItem(0);
             Log.d(Constants.TAG, "latest: " + latest);
@@ -89,7 +96,7 @@ class OperationAdapter extends ArrayAdapter<Operation> {
             if (latestId == null) {
                 return;
             }
-            operations = Operation.getNewestSince(latestId);
+            operations = isFailedItems() ? Operation.getNewestFailedSince(latestId) : Operation.getNewestSince(latestId);
         }
 
         // reverse list so it's oldest first (to insert one by one)
